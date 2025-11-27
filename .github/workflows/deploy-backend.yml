@@ -96,13 +96,14 @@ jobs:
               -p 8080:8080 \
               -e SPRING_PROFILES_ACTIVE=docker \
               -e INTERNAL_PORT=8080 \
-              -e SPRING_DATASOURCE_URL=jdbc:postgresql://postgres:5432/taskflow_db?currentSchema=taskflow \
+              -e SPRING_DATASOURCE_URL=jdbc:postgresql://taskflow-postgres:5432/taskflow_db?currentSchema=taskflow \
               -e SPRING_DATASOURCE_USERNAME=taskflow \
               -e "SPRING_DATASOURCE_PASSWORD=$DB_PASSWORD" \
-              -e SPRING_DATA_REDIS_HOST=redis \
+              -e SPRING_DATA_REDIS_HOST=taskflow-redis \
               -e SPRING_DATA_REDIS_PORT=6379 \
+              -e SPRING_DATA_REDIS_PASSWORD= \
               -e "JWT_SECRET=$JWT_SECRET" \
-              -e MINIO_ENDPOINT=http://minio:9000 \
+              -e MINIO_ENDPOINT=http://taskflow-minio:9000 \
               -e "MINIO_USERNAME=$MINIO_ACCESS_KEY" \
               -e "MINIO_PASSWORD=$MINIO_SECRET_KEY" \
               -e BUCKET_NAME=taskflow-files \
