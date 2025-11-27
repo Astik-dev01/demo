@@ -4,12 +4,63 @@ on:
   push:
     branches:
       - develop
+      - main
     paths:
       - 'backend/**'
-      - 'docker/backend/**'
+      - '.github/workflows/deploy-backend.yml'
+  workflow_dispatch:  # Allow manual trigger
+
+env:
+  REGISTRY: ghcr.io
+  IMAGE_NAME: ${{ github.repository }}/backend
 
 jobs:
+  build-and-push:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+
+    outputs:
+      image_tag: ${{ steps.meta.outputs.tags }}
+      image_name: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Log in to Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Extract metadata for Docker
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
+          tags: |
+            type=sha,prefix=
+            type=raw,value=latest
+
+      - name: Build and push Docker image
+        uses: docker/build-push-action@v5
+        with:
+          context: ./backend
+          push: true
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+          platforms: linux/amd64
+
   deploy:
+    needs: build-and-push
     runs-on: ubuntu-latest
 
     steps:
@@ -19,9 +70,63 @@ jobs:
           host: ${{ secrets.DO_HOST }}
           username: root
           key: ${{ secrets.DO_SSH_KEY }}
+          envs: GH_TOKEN,IMAGE_FULL,DB_PASSWORD,JWT_SECRET,MINIO_ACCESS_KEY,MINIO_SECRET_KEY,TELEGRAM_BOT_TOKEN,TELEGRAM_BOT_USERNAME
           script: |
-            cd /opt/taskflow
-            git pull origin develop
-            cd docker/backend
-            docker compose -f docker-compose.simple.yml up -d --build backend
+            echo "Logging in to GitHub Container Registry..."
+            echo "$GH_TOKEN" | docker login ghcr.io -u github --password-stdin
+
+            echo "Pulling latest image..."
+            docker pull $IMAGE_FULL:latest
+
+            echo "Stopping old container..."
+            docker stop taskflow-backend || true
+            docker rm taskflow-backend || true
+
+            echo "Starting new container..."
+            docker run -d \
+              --name taskflow-backend \
+              --network backend_taskflow-network \
+              --restart unless-stopped \
+              -p 8080:8080 \
+              -e SPRING_PROFILES_ACTIVE=docker \
+              -e DB_HOST=postgres \
+              -e DB_PORT=5432 \
+              -e DB_NAME=taskflow_db \
+              -e DB_USERNAME=taskflow \
+              -e "DB_PASSWORD=$DB_PASSWORD" \
+              -e REDIS_HOST=redis \
+              -e REDIS_PORT=6379 \
+              -e "JWT_SECRET=$JWT_SECRET" \
+              -e MINIO_ENDPOINT=http://minio:9000 \
+              -e "MINIO_ACCESS_KEY=$MINIO_ACCESS_KEY" \
+              -e "MINIO_SECRET_KEY=$MINIO_SECRET_KEY" \
+              -e MINIO_BUCKET=taskflow-files \
+              -e MINIO_PUBLIC_URL=http://142.93.163.24:9000 \
+              -e "TELEGRAM_BOT_TOKEN=$TELEGRAM_BOT_TOKEN" \
+              -e "TELEGRAM_BOT_USERNAME=$TELEGRAM_BOT_USERNAME" \
+              $IMAGE_FULL:latest
+
+            echo "Waiting for health check..."
+            sleep 30
+
+            if curl -s http://localhost:8080/api/actuator/health | grep -q '"status":"UP"'; then
+              echo "Deployment successful!"
+            else
+              echo "Health check failed!"
+              docker logs taskflow-backend --tail 50
+              exit 1
+            fi
+
+            echo "Cleaning up old images..."
+            docker image prune -f
+
             echo "Deployment completed at $(date)"
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          IMAGE_FULL: ghcr.io/${{ github.repository }}/backend
+          DB_PASSWORD: ${{ secrets.DB_PASSWORD }}
+          JWT_SECRET: ${{ secrets.JWT_SECRET }}
+          MINIO_ACCESS_KEY: ${{ secrets.MINIO_ACCESS_KEY }}
+          MINIO_SECRET_KEY: ${{ secrets.MINIO_SECRET_KEY }}
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          TELEGRAM_BOT_USERNAME: ${{ secrets.TELEGRAM_BOT_USERNAME }}
