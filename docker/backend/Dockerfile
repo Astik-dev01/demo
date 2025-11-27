@@ -15,7 +15,7 @@ COPY backend/gradlew .
 COPY backend/gradle gradle/
 COPY backend/build.gradle .
 COPY backend/settings.gradle .
-COPY backend/gradle.properties .
+# COPY backend/gradle.properties .
 
 # Даем права на выполнение gradlew
 RUN chmod +x ./gradlew
