@@ -19,7 +19,7 @@ import java.util.UUID;
 @RequiredArgsConstructor
 @Tag(name = "Project Types", description = "Справочник типов проектов")
 public class ProjectTypeController {
-
+//тест
     private final ProjectTypeService service;
 
     @GetMapping
