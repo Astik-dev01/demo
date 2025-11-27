@@ -23,8 +23,8 @@ ENV NEXT_TELEMETRY_DISABLED=1
 ENV NODE_ENV=production
 
 # Build-time environment variables (required for Next.js build)
-ARG NEXT_PUBLIC_API_URL=https://fs-api-test.kgdigit.tech/api
-ARG NEXT_PUBLIC_SOCKET_URL=wss://fs-api-test.kgdigit.tech
+ARG NEXT_PUBLIC_API_URL=https://demo-api-test.kgdigit.tech/api
+ARG NEXT_PUBLIC_SOCKET_URL=wss://demo-api-test.kgdigit.tech
 ARG NEXT_PUBLIC_JWT_SECRET=default_jwt_secret_for_build_only_replace_in_production_minimum_32_chars
 
 ENV NEXT_PUBLIC_API_URL=${NEXT_PUBLIC_API_URL}
