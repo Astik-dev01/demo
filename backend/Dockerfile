@@ -29,9 +29,7 @@ RUN apk add --no-cache curl
 # Add non-root user for security
 RUN addgroup -S spring && adduser -S spring -G spring
 
-# Add health check with longer start period for Spring Boot
-HEALTHCHECK --interval=30s --timeout=10s --start-period=90s --retries=5 \
-    CMD curl -sf http://localhost:8080/api/actuator/health | grep -q '"status":"UP"' || exit 1
+# No Docker HEALTHCHECK - we check manually in CI/CD to avoid start-period delays
 
 # Copy JAR from build stage
 COPY --from=build /app/build/libs/*.jar app.jar

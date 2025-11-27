@@ -113,32 +113,39 @@ jobs:
             echo "Cleaning up old images..."
             docker image prune -f
 
-            echo "Waiting for container to become healthy..."
+            echo "Waiting 60s for Spring Boot to start..."
+            sleep 60
 
-            # Wait up to 180 seconds for container to be healthy
-            for i in {1..36}; do
-              STATUS=$(docker inspect --format='{{.State.Health.Status}}' taskflow-backend 2>/dev/null || echo "unknown")
-              echo "Attempt $i/36 - Container health status: $STATUS"
+            echo "Checking health via docker exec..."
 
-              if [ "$STATUS" = "healthy" ]; then
+            # Wait up to 120 more seconds
+            for i in {1..24}; do
+              echo "Attempt $i/24..."
+
+              # Check if container is running
+              if ! docker ps | grep -q taskflow-backend; then
+                echo "❌ Container is not running!"
+                docker ps -a | grep taskflow
+                docker logs taskflow-backend --tail 100
+                exit 1
+              fi
+
+              # Check health from inside the container
+              HEALTH=$(docker exec taskflow-backend curl -sf http://localhost:8080/api/actuator/health 2>/dev/null || echo "")
+
+              if echo "$HEALTH" | grep -q '"status":"UP"'; then
                 echo "✅ Deployment successful at $(date)"
+                echo "Health: $HEALTH"
                 docker ps | grep taskflow-backend
                 exit 0
               fi
 
-              if [ "$STATUS" = "unhealthy" ]; then
-                echo "❌ Container is unhealthy, checking logs..."
-                docker logs taskflow-backend --tail 50
-                # Don't exit - container might recover
-              fi
-
+              echo "Response: ${HEALTH:-no response}"
               sleep 5
             done
 
-            echo "❌ Health check timeout after 180 seconds"
-            echo "Container status:"
-            docker ps -a | grep taskflow
-            echo "Last container logs:"
+            echo "❌ Health check failed after 180 seconds"
+            echo "Container logs:"
             docker logs taskflow-backend --tail 100
             exit 1
         env:
