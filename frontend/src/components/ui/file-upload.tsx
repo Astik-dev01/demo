@@ -162,7 +162,22 @@ export function FilePreview({ file, onRemove, showRemove = true, className }: Fi
     return <File className="w-8 h-8 text-muted-foreground" />;
   };
 
-  const previewUrl = 'url' in file && file.url ? file.url : (file instanceof File ? URL.createObjectURL(file as Blob) : null);
+  const getPreviewUrl = () => {
+    if ('url' in file && file.url) {
+      return file.url;
+    }
+    // Check if it's a File object by checking for the slice method (File extends Blob)
+    if (typeof (file as any).slice === 'function' && typeof (file as any).stream === 'function') {
+      try {
+        return URL.createObjectURL(file as Blob);
+      } catch {
+        return null;
+      }
+    }
+    return null;
+  };
+
+  const previewUrl = getPreviewUrl();
 
   return (
     <div className={cn('flex items-center gap-3 p-3 border rounded-lg bg-muted/30', className)}>
