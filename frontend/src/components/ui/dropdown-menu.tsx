@@ -110,24 +110,41 @@ DropdownMenuContent.displayName = 'DropdownMenuContent';
 
 const DropdownMenuItem = React.forwardRef<
   HTMLDivElement,
-  React.HTMLAttributes<HTMLDivElement> & { inset?: boolean }
->(({ className, inset, onClick, ...props }, ref) => {
+  React.HTMLAttributes<HTMLDivElement> & { inset?: boolean; asChild?: boolean; disabled?: boolean }
+>(({ className, inset, asChild, disabled, onClick, children, ...props }, ref) => {
   const context = React.useContext(DropdownMenuContext);
+
+  const itemClass = cn(
+    'relative flex cursor-pointer select-none items-center rounded-sm px-2 py-1.5 text-sm outline-none transition-colors hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground',
+    inset && 'pl-8',
+    disabled && 'pointer-events-none opacity-50',
+    className
+  );
+
+  if (asChild && React.isValidElement(children)) {
+    return React.cloneElement(children as React.ReactElement<any>, {
+      className: cn(itemClass, (children as React.ReactElement<any>).props.className),
+      onClick: disabled ? undefined : (e: React.MouseEvent) => {
+        onClick?.(e as any);
+        (children as React.ReactElement<any>).props.onClick?.(e);
+        context?.setOpen(false);
+      },
+    });
+  }
 
   return (
     <div
       ref={ref}
-      className={cn(
-        'relative flex cursor-pointer select-none items-center rounded-sm px-2 py-1.5 text-sm outline-none transition-colors hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground',
-        inset && 'pl-8',
-        className
-      )}
-      onClick={(e) => {
+      className={itemClass}
+      onClick={disabled ? undefined : (e) => {
         onClick?.(e);
         context?.setOpen(false);
       }}
+      aria-disabled={disabled}
       {...props}
-    />
+    >
+      {children}
+    </div>
   );
 });
 DropdownMenuItem.displayName = 'DropdownMenuItem';

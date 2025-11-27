@@ -25,11 +25,13 @@ ENV NODE_ENV=production
 # Build-time environment variables (required for Next.js build)
 ARG NEXT_PUBLIC_API_URL=https://demo-api-test.kgdigit.tech/api
 ARG NEXT_PUBLIC_SOCKET_URL=wss://demo-api-test.kgdigit.tech
-ARG NEXT_PUBLIC_JWT_SECRET=default_jwt_secret_for_build_only_replace_in_production_minimum_32_chars
+ARG NEXT_PUBLIC_STORAGE_URL=https://demo-api-test.kgdigit.tech/files
+ARG NEXT_PUBLIC_UPLOAD_URL=https://demo-api-test.kgdigit.tech/api/files
 
 ENV NEXT_PUBLIC_API_URL=${NEXT_PUBLIC_API_URL}
 ENV NEXT_PUBLIC_SOCKET_URL=${NEXT_PUBLIC_SOCKET_URL}
-ENV NEXT_PUBLIC_JWT_SECRET=${NEXT_PUBLIC_JWT_SECRET}
+ENV NEXT_PUBLIC_STORAGE_URL=${NEXT_PUBLIC_STORAGE_URL}
+ENV NEXT_PUBLIC_UPLOAD_URL=${NEXT_PUBLIC_UPLOAD_URL}
 
 # Build the application
 RUN npm run build
