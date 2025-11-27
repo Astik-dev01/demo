@@ -10,8 +10,10 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PageableDefault;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
 import java.util.UUID;
@@ -160,6 +162,22 @@ public class TaskController {
     @Operation(summary = "Get task attachments")
     public ResponseEntity<List<TaskAttachmentDto>> getAttachments(@PathVariable UUID taskId) {
         return ResponseEntity.ok(taskService.getAttachments(taskId));
+    }
+
+    @PostMapping(value = "/{taskId}/attachments", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    @Operation(summary = "Upload attachment to task")
+    public ResponseEntity<TaskAttachmentDto> uploadAttachment(
+            @PathVariable UUID taskId,
+            @RequestParam("file") MultipartFile file) {
+        return ResponseEntity.status(HttpStatus.CREATED).body(taskService.uploadAttachment(taskId, file));
+    }
+
+    @PostMapping(value = "/{taskId}/attachments/multiple", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    @Operation(summary = "Upload multiple attachments to task")
+    public ResponseEntity<List<TaskAttachmentDto>> uploadAttachments(
+            @PathVariable UUID taskId,
+            @RequestParam("files") List<MultipartFile> files) {
+        return ResponseEntity.status(HttpStatus.CREATED).body(taskService.uploadAttachments(taskId, files));
     }
 
     @DeleteMapping("/attachments/{attachmentId}")

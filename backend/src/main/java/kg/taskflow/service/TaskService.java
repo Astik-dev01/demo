@@ -3,6 +3,7 @@ package kg.taskflow.service;
 import kg.taskflow.dto.task.*;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
 import java.util.UUID;
@@ -49,6 +50,10 @@ public interface TaskService {
 
     // Attachments
     List<TaskAttachmentDto> getAttachments(UUID taskId);
+
+    TaskAttachmentDto uploadAttachment(UUID taskId, MultipartFile file);
+
+    List<TaskAttachmentDto> uploadAttachments(UUID taskId, List<MultipartFile> files);
 
     void deleteAttachment(UUID attachmentId);
 }

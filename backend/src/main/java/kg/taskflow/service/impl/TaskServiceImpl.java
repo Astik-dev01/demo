@@ -13,6 +13,7 @@ import kg.taskflow.exception.BadRequestException;
 import kg.taskflow.exception.ForbiddenException;
 import kg.taskflow.exception.NotFoundException;
 import kg.taskflow.mapper.TaskMapper;
+import kg.taskflow.service.FileService;
 import kg.taskflow.service.NotificationService;
 import kg.taskflow.service.ProjectService;
 import kg.taskflow.service.TaskService;
@@ -22,6 +23,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.time.LocalDate;
 import java.util.*;
@@ -46,6 +48,7 @@ public class TaskServiceImpl implements TaskService {
     private final TaskMapper taskMapper;
     private final ProjectService projectService;
     private final NotificationService notificationService;
+    private final FileService fileService;
 
     @Override
     @Transactional
@@ -483,7 +486,40 @@ public class TaskServiceImpl implements TaskService {
         checkProjectAccess(task.getProject().getId());
 
         List<TaskAttachment> attachments = attachmentRepository.findByTask(taskId);
-        return taskMapper.toAttachmentDtoList(attachments);
+        return attachments.stream()
+                .map(this::toAttachmentDto)
+                .collect(Collectors.toList());
+    }
+
+    @Override
+    @Transactional
+    public TaskAttachmentDto uploadAttachment(UUID taskId, MultipartFile file) {
+        Task task = findTaskById(taskId);
+        checkProjectAccess(task.getProject().getId());
+
+        User currentUser = getCurrentUser();
+        String path = "tasks/" + taskId;
+        String filePath = fileService.uploadFile(file, path);
+
+        TaskAttachment attachment = TaskAttachment.builder()
+                .task(task)
+                .uploadedBy(currentUser)
+                .fileName(file.getOriginalFilename())
+                .filePath(filePath)
+                .fileSize(file.getSize())
+                .mimeType(file.getContentType())
+                .build();
+
+        attachment = attachmentRepository.save(attachment);
+        return toAttachmentDto(attachment);
+    }
+
+    @Override
+    @Transactional
+    public List<TaskAttachmentDto> uploadAttachments(UUID taskId, List<MultipartFile> files) {
+        return files.stream()
+                .map(file -> uploadAttachment(taskId, file))
+                .collect(Collectors.toList());
     }
 
     @Override
@@ -494,8 +530,21 @@ public class TaskServiceImpl implements TaskService {
 
         checkProjectAccess(attachment.getTask().getProject().getId());
 
+        // Delete file from MinIO
+        try {
+            fileService.deleteFile(attachment.getFilePath());
+        } catch (Exception e) {
+            // Log but don't fail if file deletion fails
+        }
+
         attachment.setIsDeleted(true);
         attachmentRepository.save(attachment);
+    }
+
+    private TaskAttachmentDto toAttachmentDto(TaskAttachment attachment) {
+        TaskAttachmentDto dto = taskMapper.toAttachmentDto(attachment);
+        dto.setUrl(fileService.getPublicUrl(attachment.getFilePath()));
+        return dto;
     }
 
     // Helper methods

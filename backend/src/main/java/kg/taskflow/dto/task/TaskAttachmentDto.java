@@ -15,6 +15,7 @@ public class TaskAttachmentDto {
     private UserDto uploadedBy;
     private String fileName;
     private String filePath;
+    private String url;
     private Long fileSize;
     private String mimeType;
     private LocalDateTime createdAt;

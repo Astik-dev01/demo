@@ -113,6 +113,32 @@ export const taskService = {
     return response.data;
   },
 
+  async uploadAttachment(taskId: string, file: File): Promise<TaskAttachment> {
+    const formData = new FormData();
+    formData.append('file', file);
+
+    const response = await api.post<TaskAttachment>(`/tasks/${taskId}/attachments`, formData, {
+      headers: {
+        'Content-Type': 'multipart/form-data',
+      },
+    });
+    return response.data;
+  },
+
+  async uploadAttachments(taskId: string, files: File[]): Promise<TaskAttachment[]> {
+    const formData = new FormData();
+    files.forEach((file) => {
+      formData.append('files', file);
+    });
+
+    const response = await api.post<TaskAttachment[]>(`/tasks/${taskId}/attachments/multiple`, formData, {
+      headers: {
+        'Content-Type': 'multipart/form-data',
+      },
+    });
+    return response.data;
+  },
+
   async deleteAttachment(attachmentId: string): Promise<void> {
     await api.delete(`/tasks/attachments/${attachmentId}`);
   },

@@ -8,12 +8,14 @@ import kg.taskflow.dto.user.UserDto;
 import kg.taskflow.exception.BadRequestException;
 import kg.taskflow.exception.NotFoundException;
 import kg.taskflow.mapper.UserMapper;
+import kg.taskflow.service.FileService;
 import kg.taskflow.service.UserService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
 import java.util.UUID;
@@ -27,6 +29,7 @@ public class UserServiceImpl implements UserService {
     private final UserRepository userRepository;
     private final UserMapper userMapper;
     private final PasswordEncoder passwordEncoder;
+    private final FileService fileService;
 
     @Override
     public User getById(UUID id) {
@@ -86,6 +89,61 @@ public class UserServiceImpl implements UserService {
     public void updateAvatar(UUID id, String avatarUrl) {
         User user = getById(id);
         user.setAvatarUrl(avatarUrl);
+        userRepository.save(user);
+    }
+
+    @Override
+    @Transactional
+    public String uploadAvatar(MultipartFile file) {
+        User user = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        user = getById(user.getId());
+
+        // Delete old avatar if exists
+        if (user.getAvatarUrl() != null && !user.getAvatarUrl().isEmpty()) {
+            try {
+                // Extract file path from URL
+                String oldPath = user.getAvatarUrl();
+                if (oldPath.contains("/avatars/")) {
+                    int idx = oldPath.indexOf("/avatars/");
+                    oldPath = oldPath.substring(idx + 1);
+                    fileService.deleteFile(oldPath);
+                }
+            } catch (Exception e) {
+                // Ignore deletion errors
+            }
+        }
+
+        // Upload new avatar
+        String path = "avatars/" + user.getId();
+        String filePath = fileService.uploadFile(file, path);
+        String avatarUrl = fileService.getPublicUrl(filePath);
+
+        user.setAvatarUrl(avatarUrl);
+        userRepository.save(user);
+
+        return avatarUrl;
+    }
+
+    @Override
+    @Transactional
+    public void deleteAvatar() {
+        User user = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        user = getById(user.getId());
+
+        if (user.getAvatarUrl() != null && !user.getAvatarUrl().isEmpty()) {
+            try {
+                String oldPath = user.getAvatarUrl();
+                if (oldPath.contains("/avatars/")) {
+                    int idx = oldPath.indexOf("/avatars/");
+                    oldPath = oldPath.substring(idx + 1);
+                    fileService.deleteFile(oldPath);
+                }
+            } catch (Exception e) {
+                // Ignore deletion errors
+            }
+        }
+
+        user.setAvatarUrl(null);
         userRepository.save(user);
     }
 

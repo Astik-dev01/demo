@@ -98,6 +98,7 @@ export interface TaskAttachment {
   uploadedBy: User;
   fileName: string;
   filePath: string;
+  url: string;
   fileSize: number;
   mimeType: string | null;
   createdAt: string;

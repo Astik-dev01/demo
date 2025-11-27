@@ -42,8 +42,9 @@ import {
 import { useToast } from '@/components/ui/use-toast';
 import { taskService } from '@/services/task.service';
 import { taskStatusService } from '@/services/handbook.service';
-import { Task, TaskComment } from '@/types/task.types';
+import { Task, TaskComment, TaskAttachment } from '@/types/task.types';
 import { TaskStatus } from '@/types/handbook.types';
+import { TaskAttachments } from '@/components/task/TaskAttachments';
 
 export default function TaskDetailPage() {
   const params = useParams();
@@ -54,6 +55,7 @@ export default function TaskDetailPage() {
 
   const [task, setTask] = useState<Task | null>(null);
   const [comments, setComments] = useState<TaskComment[]>([]);
+  const [attachments, setAttachments] = useState<TaskAttachment[]>([]);
   const [statuses, setStatuses] = useState<TaskStatus[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -74,13 +76,26 @@ export default function TaskDetailPage() {
       const taskData = await taskService.getById(taskId);
       setTask(taskData);
 
-      const commentsData = await taskService.getComments(taskId);
+      const [commentsData, attachmentsData] = await Promise.all([
+        taskService.getComments(taskId),
+        taskService.getAttachments(taskId),
+      ]);
       setComments(commentsData);
+      setAttachments(attachmentsData);
     } catch (err: any) {
       console.error('Failed to load task:', err);
       setError(err.response?.data?.message || 'Failed to load task');
     } finally {
       setLoading(false);
+    }
+  };
+
+  const loadAttachments = async () => {
+    try {
+      const attachmentsData = await taskService.getAttachments(taskId);
+      setAttachments(attachmentsData);
+    } catch (err) {
+      console.error('Failed to load attachments:', err);
     }
   };
 
@@ -578,20 +593,12 @@ export default function TaskDetailPage() {
 
           {/* Attachments */}
           <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Paperclip className="h-5 w-5" />
-                Attachments ({task.attachmentCount})
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              {task.attachmentCount > 0 ? (
-                <p className="text-sm text-muted-foreground">
-                  {task.attachmentCount} file(s) attached
-                </p>
-              ) : (
-                <p className="text-sm text-muted-foreground italic">No attachments</p>
-              )}
+            <CardContent className="pt-6">
+              <TaskAttachments
+                taskId={task.id}
+                attachments={attachments}
+                onUpdate={loadAttachments}
+              />
             </CardContent>
           </Card>
         </div>

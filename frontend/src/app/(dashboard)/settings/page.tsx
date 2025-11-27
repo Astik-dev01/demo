@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
-import { User, Bell, Palette, Shield, Loader2, Save, Camera, MessageCircle, ExternalLink, CheckCircle2, XCircle } from 'lucide-react';
+import { User, Bell, Palette, Shield, Loader2, Save, MessageCircle, ExternalLink, CheckCircle2, XCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -22,6 +22,7 @@ import { notificationSettingsService } from '@/services/notification-settings.se
 import { useTheme } from '@/contexts/theme-context';
 import { useLanguage } from '@/contexts/language-context';
 import { NotificationSettings, TelegramStatus, TelegramLink } from '@/types/notification-settings.types';
+import { AvatarUpload } from '@/components/settings/AvatarUpload';
 
 const profileSchema = z.object({
   firstName: z.string().min(1, 'First name is required'),
@@ -254,25 +255,15 @@ export default function SettingsPage() {
             </CardHeader>
             <CardContent>
               <form onSubmit={profileForm.handleSubmit(onProfileSubmit)} className="space-y-6">
-                <div className="flex items-center gap-6">
-                  <div className="relative">
-                    <div className="h-24 w-24 rounded-full bg-primary/10 flex items-center justify-center text-2xl font-semibold text-primary">
-                      {user?.firstName?.[0]}{user?.lastName?.[0]}
-                    </div>
-                    <Button
-                      type="button"
-                      size="icon"
-                      variant="secondary"
-                      className="absolute bottom-0 right-0 h-8 w-8 rounded-full"
-                    >
-                      <Camera className="h-4 w-4" />
-                    </Button>
-                  </div>
-                  <div>
-                    <h3 className="font-semibold">{user?.fullName}</h3>
-                    <p className="text-sm text-muted-foreground">{user?.email}</p>
-                  </div>
-                </div>
+                <AvatarUpload
+                  currentAvatarUrl={user?.avatarUrl}
+                  userName={user?.fullName}
+                  onUpdate={(newAvatarUrl) => {
+                    if (user) {
+                      setUser({ ...user, avatarUrl: newAvatarUrl });
+                    }
+                  }}
+                />
 
                 <Separator />
 
