@@ -95,18 +95,16 @@ jobs:
               --restart unless-stopped \
               -p 8080:8080 \
               -e SPRING_PROFILES_ACTIVE=docker \
-              -e DB_HOST=postgres \
-              -e DB_PORT=5432 \
-              -e DB_NAME=taskflow_db \
-              -e DB_USERNAME=taskflow \
-              -e "DB_PASSWORD=$DB_PASSWORD" \
-              -e REDIS_HOST=redis \
-              -e REDIS_PORT=6379 \
+              -e SPRING_DATASOURCE_URL=jdbc:postgresql://postgres:5432/taskflow_db?currentSchema=taskflow \
+              -e SPRING_DATASOURCE_USERNAME=taskflow \
+              -e "SPRING_DATASOURCE_PASSWORD=$DB_PASSWORD" \
+              -e SPRING_DATA_REDIS_HOST=redis \
+              -e SPRING_DATA_REDIS_PORT=6379 \
               -e "JWT_SECRET=$JWT_SECRET" \
               -e MINIO_ENDPOINT=http://minio:9000 \
-              -e "MINIO_ACCESS_KEY=$MINIO_ACCESS_KEY" \
-              -e "MINIO_SECRET_KEY=$MINIO_SECRET_KEY" \
-              -e MINIO_BUCKET=taskflow-files \
+              -e "MINIO_USERNAME=$MINIO_ACCESS_KEY" \
+              -e "MINIO_PASSWORD=$MINIO_SECRET_KEY" \
+              -e BUCKET_NAME=taskflow-files \
               -e MINIO_PUBLIC_URL=http://142.93.163.24:9000 \
               -e "TELEGRAM_BOT_TOKEN=$TELEGRAM_BOT_TOKEN" \
               -e "TELEGRAM_BOT_USERNAME=$TELEGRAM_BOT_USERNAME" \
