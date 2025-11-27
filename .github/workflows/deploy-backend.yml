@@ -110,6 +110,7 @@ jobs:
               -e MINIO_PUBLIC_URL=http://142.93.163.24:9000 \
               -e "TELEGRAM_BOT_TOKEN=$TELEGRAM_BOT_TOKEN" \
               -e "TELEGRAM_BOT_USERNAME=$TELEGRAM_BOT_USERNAME" \
+              -e "CORS_ALLOWED_ORIGINS=https://taskflow-test.netlify.app,https://api.freewayspace.space,http://localhost:3000" \
               $IMAGE_FULL:latest
 
             echo "Cleaning up old images..."
