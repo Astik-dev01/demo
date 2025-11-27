@@ -1,0 +1,41 @@
+spring:
+  datasource:
+    url: jdbc:h2:mem:testdb;DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=FALSE
+    driver-class-name: org.h2.Driver
+    username: sa
+    password:
+  jpa:
+    database-platform: org.hibernate.dialect.H2Dialect
+    hibernate:
+      ddl-auto: create-drop
+    show-sql: false
+  flyway:
+    enabled: false
+  data:
+    redis:
+      host: localhost
+      port: 6379
+  autoconfigure:
+    exclude:
+      - org.springframework.boot.autoconfigure.data.redis.RedisAutoConfiguration
+      - org.springframework.boot.autoconfigure.data.redis.RedisRepositoriesAutoConfiguration
+
+jwt:
+  secret: test-secret-key-for-testing-purposes-only-minimum-256-bits-required-here
+  expiration: 3600000
+  refresh-expiration: 604800000
+
+cors:
+  allowed-origins: http://localhost:3000
+  allowed-methods: GET,POST,PUT,DELETE,PATCH,OPTIONS
+
+minio:
+  endpoint: http://localhost:9000
+  access-key: test
+  secret-key: test1234
+  bucket: test-bucket
+
+logging:
+  level:
+    root: WARN
+    kg.taskflow: DEBUG

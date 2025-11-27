@@ -1,0 +1,43 @@
+# Backend
+backend/build/
+backend/.gradle/
+backend/bin/
+backend/*.class
+
+# Frontend
+frontend/node_modules/
+frontend/.next/
+frontend/out/
+
+# IDE
+.idea/
+*.iml
+.vscode/
+*.swp
+*.swo
+
+# Environment
+.env
+.env.local
+.env.production
+*.env
+
+# Logs
+*.log
+logs/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Docker volumes
+postgres_data/
+redis_data/
+minio_data/
+
+# Misc
+*.bak
+*.tmp
+
+# Claude
+.claude/
