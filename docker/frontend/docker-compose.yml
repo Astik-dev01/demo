@@ -1,0 +1,75 @@
+version: '3.8'
+
+services:
+  # Taskflow System Frontend Application
+  frontend:
+    build:
+      context: ../../
+      dockerfile: docker/frontend/Dockerfile
+      args:
+        EXTERNAL_PORT: ${EXTERNAL_PORT:-3000}
+        INTERNAL_PORT: ${INTERNAL_PORT:-3000}
+    container_name: taskflow-system-frontend
+    restart: unless-stopped
+    environment:
+      # Next.js Configuration
+      NODE_ENV: ${NODE_ENV:-production}
+
+      # Port Configuration
+      EXTERNAL_PORT: ${EXTERNAL_PORT:-3000}
+      INTERNAL_PORT: ${INTERNAL_PORT:-3000}
+
+      # API Configuration (uses domains, not localhost ports)
+      NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL:-https://fs-api-test.kgdigit.tech/api}
+      NEXT_PUBLIC_SOCKET_URL: ${NEXT_PUBLIC_SOCKET_URL:-wss://fs-api-test.kgdigit.tech}
+      NEXT_PUBLIC_MAP_TOKEN: ${NEXT_PUBLIC_MAP_TOKEN}
+      NEXT_PUBLIC_UPLOAD_URL: ${NEXT_PUBLIC_UPLOAD_URL:-https://fs-api-test.kgdigit.tech/uploads}
+
+      # Application Settings
+      APP_NAME: ${APP_NAME:-Taskflow System}
+      APP_ENV: ${APP_ENV:-production}
+
+      # Feature Flags
+      NEXT_PUBLIC_ENABLE_MAPS: ${NEXT_PUBLIC_ENABLE_MAPS:-true}
+      NEXT_PUBLIC_ENABLE_REALTIME: ${NEXT_PUBLIC_ENABLE_REALTIME:-true}
+      NEXT_PUBLIC_ENABLE_OFFLINE: ${NEXT_PUBLIC_ENABLE_OFFLINE:-true}
+
+      # Telegram Mini App
+      NEXT_PUBLIC_TELEGRAM_BOT_USERNAME: ${NEXT_PUBLIC_TELEGRAM_BOT_USERNAME}
+      NEXT_PUBLIC_TELEGRAM_WEB_APP_URL: ${NEXT_PUBLIC_TELEGRAM_WEB_APP_URL}
+
+      # MinIO/Storage
+      NEXT_PUBLIC_STORAGE_URL: ${NEXT_PUBLIC_STORAGE_URL:-http://localhost:9000}
+
+      # Sentry (optional)
+      NEXT_PUBLIC_SENTRY_DSN: ${NEXT_PUBLIC_SENTRY_DSN}
+
+      # Analytics (optional)
+      NEXT_PUBLIC_ANALYTICS_ID: ${NEXT_PUBLIC_ANALYTICS_ID}
+
+    ports:
+      - "${EXTERNAL_PORT:-3000}:${INTERNAL_PORT:-3000}"
+
+    #healthcheck:
+    #  test: ["CMD", "curl", "-f", "http://localhost:${INTERNAL_PORT:-3000}/api/health"]
+    #  interval: 30s
+    #  timeout: 10s
+    #  retries: 3
+    #  start_period: 40s
+
+    # Resource limits
+    deploy:
+      resources:
+        limits:
+          cpus: '2'
+          memory: 2G
+        reservations:
+          cpus: '0.5'
+          memory: 512M
+
+    networks:
+      - taskflow_system_network
+
+networks:
+  taskflow_system_network:
+    driver: bridge

@@ -1,0 +1,64 @@
+version: '3.8'
+
+services:
+  # Taskflow Backend Application
+  backend:
+    build:
+      context: ../../
+      dockerfile: docker/backend/Dockerfile
+      args:
+        EXTERNAL_PORT: ${EXTERNAL_PORT:-8097}
+        INTERNAL_PORT: ${INTERNAL_PORT:-8080}
+    container_name: taskflow-service-backend
+    restart: unless-stopped
+    environment:
+      SPRING_PROFILES_ACTIVE: ${SPRING_PROFILES_ACTIVE:-dev}
+      # Database Configuration - External PostgreSQL
+      SPRING_DATASOURCE_URL: ${DB_URL:-jdbc:postgresql://postgres:5432/taskflow_dev_db}
+      SPRING_DATASOURCE_USERNAME: ${DB_USER:-taskflow_system_dev_user}
+      SPRING_DATASOURCE_PASSWORD: ${DB_PASSWORD}
+      DB_SCHEMA: ${DB_SCHEMA:-taskflow_system_dev}
+      SPRING_JPA_PROPERTIES_HIBERNATE_DEFAULT_SCHEMA: ${DB_SCHEMA:-taskflow_system_dev}
+      # MinIO Configuration - External Object Storage
+      MINIO_ENDPOINT: ${MINIO_ENDPOINT}
+      MINIO_USERNAME: ${MINIO_USERNAME}
+      MINIO_PASSWORD: ${MINIO_PASSWORD}
+      MINIO_SECURE: ${MINIO_SECURE:-false}
+      BUCKET_NAME: ${BUCKET_NAME:-taskflow-files}
+      # CORS
+      CORS_ALLOWED_ORIGINS: ${CORS_ALLOWED_ORIGINS:-http://localhost:3000}
+      # JWT Configuration
+      JWT_SECRET: ${JWT_SECRET}
+      JWT_EXPIRATION: ${JWT_EXPIRATION:-432000000}
+      JWT_REFRESH_EXPIRATION: ${JWT_REFRESH_EXPIRATION:-432000000}
+      # Application Configuration
+      JAVA_OPTS: ${JAVA_OPTS:--Xms512m -Xmx1024m}
+
+      # Port Configuration
+      EXTERNAL_PORT: ${EXTERNAL_PORT:-8097}
+      INTERNAL_PORT: ${INTERNAL_PORT:-8080}
+
+      TZ: ${TZ:-Asia/Bishkek}
+
+      # Telegram Support Bot
+      TELEGRAM_SUPPORT_BOT_ENABLED: ${TELEGRAM_SUPPORT_BOT_ENABLED}
+      TELEGRAM_SUPPORT_BOT_TOKEN: ${TELEGRAM_SUPPORT_BOT_TOKEN}
+      TELEGRAM_SUPPORT_BOT_USERNAME: ${TELEGRAM_SUPPORT_BOT_USERNAME}
+      TELEGRAM_SUPPORT_BOT_WEBHOOK_PATH: ${TELEGRAM_SUPPORT_BOT_WEBHOOK_PATH}
+      TELEGRAM_SUPPORT_BOT_BASE_URL: ${TELEGRAM_SUPPORT_BOT_BASE_URL}
+      TELEGRAM_SUPPORT_BOT_TOKEN_EXPIRATION_HOURS: ${TELEGRAM_SUPPORT_BOT_TOKEN_EXPIRATION_HOURS}
+      TELEGRAM_SUPPORT_BOT_EMPLOYEE_CODE_PREFIX: ${TELEGRAM_SUPPORT_BOT_EMPLOYEE_CODE_PREFIX}
+      TELEGRAM_SUPPORT_BOT_EMPLOYEE_CODE_LENGTH: ${TELEGRAM_SUPPORT_BOT_EMPLOYEE_CODE_LENGTH}
+      TELEGRAM_SUPPORT_BOT_WEB_APP_URL: ${TELEGRAM_SUPPORT_BOT_WEB_APP_URL}
+
+  
+      # Logging - stdout/stderr (Docker best practice)
+      # Logs are collected by Docker daemon and accessible via 'docker logs'
+    ports:
+      - "${EXTERNAL_PORT:-8090}:${INTERNAL_PORT:-8080}"
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:${INTERNAL_PORT:-8080}/api/actuator/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 90s
