@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
+import { useEffect, useCallback } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
@@ -42,10 +42,86 @@ import {
 } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
 import { adminUserService, adminRoleService } from '@/services/admin.service';
-import { AdminUser, AdminUserFilterRequest, CreateUserRequest, UpdateUserRequest, SystemRole } from '@/types/admin.types';
+import { AdminUser, CreateUserRequest, SystemRole } from '@/types/admin.types';
 import { useLanguage } from '@/contexts/language-context';
 import { useDebounce } from '@/hooks/use-debounce';
+import { create } from 'zustand';
+import { devtools } from 'zustand/middleware';
 
+// ==================== ZUSTAND STORE ====================
+interface AdminUsersPageState {
+  users: AdminUser[];
+  roles: SystemRole[];
+  loading: boolean;
+  dialogOpen: boolean;
+  editingUser: AdminUser | null;
+  searchQuery: string;
+  filterActive: string;
+  filterDeleted: string;
+  page: number;
+  totalPages: number;
+  totalElements: number;
+
+  // Actions
+  setUsers: (users: AdminUser[]) => void;
+  setRoles: (roles: SystemRole[]) => void;
+  setLoading: (loading: boolean) => void;
+  setDialogOpen: (open: boolean) => void;
+  setEditingUser: (user: AdminUser | null) => void;
+  setSearchQuery: (query: string) => void;
+  setFilterActive: (filter: string) => void;
+  setFilterDeleted: (filter: string) => void;
+  setPage: (page: number) => void;
+  setPagination: (totalPages: number, totalElements: number) => void;
+  updateUser: (user: AdminUser) => void;
+  removeUser: (id: string) => void;
+  reset: () => void;
+}
+
+const initialState = {
+  users: [],
+  roles: [],
+  loading: true,
+  dialogOpen: false,
+  editingUser: null,
+  searchQuery: '',
+  filterActive: 'all',
+  filterDeleted: 'false',
+  page: 0,
+  totalPages: 0,
+  totalElements: 0,
+};
+
+const useAdminUsersPageStore = create<AdminUsersPageState>()(
+  devtools(
+    (set) => ({
+      ...initialState,
+      setUsers: (users) => set({ users }),
+      setRoles: (roles) => set({ roles }),
+      setLoading: (loading) => set({ loading }),
+      setDialogOpen: (dialogOpen) => set({ dialogOpen }),
+      setEditingUser: (editingUser) => set({ editingUser }),
+      setSearchQuery: (searchQuery) => set({ searchQuery, page: 0 }),
+      setFilterActive: (filterActive) => set({ filterActive, page: 0 }),
+      setFilterDeleted: (filterDeleted) => set({ filterDeleted, page: 0 }),
+      setPage: (page) => set({ page }),
+      setPagination: (totalPages, totalElements) => set({ totalPages, totalElements }),
+      updateUser: (updatedUser) =>
+        set((state) => ({
+          users: state.users.map((u) => (u.id === updatedUser.id ? updatedUser : u)),
+        })),
+      removeUser: (id) =>
+        set((state) => ({
+          users: state.users.filter((u) => u.id !== id),
+          totalElements: state.totalElements - 1,
+        })),
+      reset: () => set(initialState),
+    }),
+    { name: 'admin-users-page' }
+  )
+);
+
+// ==================== SCHEMAS ====================
 const createUserSchema = z.object({
   email: z.string().email('Invalid email'),
   password: z.string().min(6, 'Password must be at least 6 characters'),
@@ -71,19 +147,35 @@ const updateUserSchema = z.object({
 type CreateUserForm = z.infer<typeof createUserSchema>;
 type UpdateUserForm = z.infer<typeof updateUserSchema>;
 
+// ==================== COMPONENT ====================
 export default function AdminUsersPage() {
   const { t } = useLanguage();
-  const [users, setUsers] = useState<AdminUser[]>([]);
-  const [roles, setRoles] = useState<SystemRole[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [dialogOpen, setDialogOpen] = useState(false);
-  const [editingUser, setEditingUser] = useState<AdminUser | null>(null);
-  const [searchQuery, setSearchQuery] = useState('');
-  const [filterActive, setFilterActive] = useState<string>('all');
-  const [filterDeleted, setFilterDeleted] = useState<string>('false');
-  const [page, setPage] = useState(0);
-  const [totalPages, setTotalPages] = useState(0);
-  const [totalElements, setTotalElements] = useState(0);
+
+  // Zustand store
+  const {
+    users,
+    roles,
+    loading,
+    dialogOpen,
+    editingUser,
+    searchQuery,
+    filterActive,
+    filterDeleted,
+    page,
+    totalPages,
+    totalElements,
+    setUsers,
+    setRoles,
+    setLoading,
+    setDialogOpen,
+    setEditingUser,
+    setSearchQuery,
+    setFilterActive,
+    setFilterDeleted,
+    setPage,
+    setPagination,
+    updateUser,
+  } = useAdminUsersPageStore();
 
   const debouncedSearch = useDebounce(searchQuery, 300);
 
@@ -110,14 +202,14 @@ export default function AdminUsersPage() {
         setRoles(data);
       }
     } catch (error) {
-      // Roles endpoint not ready, will use empty roles
+      // Roles endpoint not ready
     }
   };
 
   const loadUsers = useCallback(async () => {
     try {
       setLoading(true);
-      const filter: AdminUserFilterRequest = {};
+      const filter: any = {};
 
       if (debouncedSearch) {
         filter.search = debouncedSearch;
@@ -133,14 +225,13 @@ export default function AdminUsersPage() {
 
       const response = await adminUserService.findAll(filter, page, 20);
       setUsers(response.content);
-      setTotalPages(response.totalPages);
-      setTotalElements(response.totalElements);
+      setPagination(response.totalPages, response.totalElements);
     } catch (error: any) {
       toast.error(error.response?.data?.message || 'Failed to load users');
     } finally {
       setLoading(false);
     }
-  }, [debouncedSearch, filterActive, filterDeleted, page]);
+  }, [debouncedSearch, filterActive, filterDeleted, page, setUsers, setLoading, setPagination]);
 
   useEffect(() => {
     loadUsers();
@@ -158,7 +249,6 @@ export default function AdminUsersPage() {
       };
 
       if (editingUser) {
-        // For update, only include password if it was changed
         if (!payload.password) {
           delete payload.password;
         }
@@ -278,15 +368,12 @@ export default function AdminUsersPage() {
                 <Input
                   placeholder="Search users..."
                   value={searchQuery}
-                  onChange={(e) => {
-                    setSearchQuery(e.target.value);
-                    setPage(0);
-                  }}
+                  onChange={(e) => setSearchQuery(e.target.value)}
                   className="pl-10"
                 />
               </div>
             </div>
-            <Select value={filterActive} onValueChange={(v) => { setFilterActive(v); setPage(0); }}>
+            <Select value={filterActive} onValueChange={setFilterActive}>
               <SelectTrigger className="w-[150px]">
                 <SelectValue placeholder="Status" />
               </SelectTrigger>
@@ -296,7 +383,7 @@ export default function AdminUsersPage() {
                 <SelectItem value="false">Blocked</SelectItem>
               </SelectContent>
             </Select>
-            <Select value={filterDeleted} onValueChange={(v) => { setFilterDeleted(v); setPage(0); }}>
+            <Select value={filterDeleted} onValueChange={setFilterDeleted}>
               <SelectTrigger className="w-[150px]">
                 <SelectValue placeholder="Deleted" />
               </SelectTrigger>
@@ -432,7 +519,7 @@ export default function AdminUsersPage() {
                       variant="outline"
                       size="sm"
                       disabled={page === 0}
-                      onClick={() => setPage(p => p - 1)}
+                      onClick={() => setPage(page - 1)}
                     >
                       Previous
                     </Button>
@@ -440,7 +527,7 @@ export default function AdminUsersPage() {
                       variant="outline"
                       size="sm"
                       disabled={page >= totalPages - 1}
-                      onClick={() => setPage(p => p + 1)}
+                      onClick={() => setPage(page + 1)}
                     >
                       Next
                     </Button>
