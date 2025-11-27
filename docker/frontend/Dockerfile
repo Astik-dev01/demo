@@ -21,6 +21,9 @@ COPY --from=deps /app/node_modules ./node_modules
 # Copy all frontend source code
 COPY frontend/ .
 
+# Ensure public folder exists
+RUN mkdir -p ./public
+
 # Set environment variables for build
 ENV NEXT_TELEMETRY_DISABLED=1
 
