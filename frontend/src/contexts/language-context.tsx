@@ -80,6 +80,24 @@ const translations: Record<Language, Record<string, string>> = {
     'settings.newPassword': 'New Password',
     'settings.confirmPassword': 'Confirm New Password',
 
+    // Telegram
+    'settings.telegramNotifications': 'Telegram Notifications',
+    'settings.telegramNotificationsDesc': 'Receive notifications via Telegram',
+    'settings.telegramConnected': 'Connected',
+    'settings.telegramNotConnected': 'Not connected',
+    'settings.telegramConnect': 'Connect Telegram',
+    'settings.telegramDisconnect': 'Disconnect',
+    'settings.telegramConnectTitle': 'Connect Telegram',
+    'settings.telegramConnectDesc': 'Scan QR code or click the link to connect your Telegram account',
+    'settings.telegramCode': 'Your code',
+    'settings.telegramOpenBot': 'Open Telegram Bot',
+    'settings.telegramConnectedAs': 'Connected as',
+    'settings.inAppNotifications': 'In-App Notifications',
+    'settings.inAppNotificationsDesc': 'Show notifications in the app',
+    'settings.notificationChannels': 'Notification Channels',
+    'settings.mentioned': 'Someone mentions me',
+    'settings.projectInvite': 'I receive a project invitation',
+
     // Common
     'common.save': 'Save',
     'common.cancel': 'Cancel',
@@ -181,6 +199,24 @@ const translations: Record<Language, Record<string, string>> = {
     'settings.newPassword': 'Новый пароль',
     'settings.confirmPassword': 'Подтвердите новый пароль',
 
+    // Telegram
+    'settings.telegramNotifications': 'Telegram уведомления',
+    'settings.telegramNotificationsDesc': 'Получать уведомления через Telegram',
+    'settings.telegramConnected': 'Подключен',
+    'settings.telegramNotConnected': 'Не подключен',
+    'settings.telegramConnect': 'Подключить Telegram',
+    'settings.telegramDisconnect': 'Отключить',
+    'settings.telegramConnectTitle': 'Подключение Telegram',
+    'settings.telegramConnectDesc': 'Отсканируйте QR-код или нажмите на ссылку для подключения Telegram',
+    'settings.telegramCode': 'Ваш код',
+    'settings.telegramOpenBot': 'Открыть Telegram бот',
+    'settings.telegramConnectedAs': 'Подключен как',
+    'settings.inAppNotifications': 'Уведомления в приложении',
+    'settings.inAppNotificationsDesc': 'Показывать уведомления в приложении',
+    'settings.notificationChannels': 'Каналы уведомлений',
+    'settings.mentioned': 'Кто-то упоминает меня',
+    'settings.projectInvite': 'Получено приглашение в проект',
+
     // Common
     'common.save': 'Сохранить',
     'common.cancel': 'Отмена',
@@ -281,6 +317,24 @@ const translations: Record<Language, Record<string, string>> = {
     'settings.currentPassword': 'Учурдагы сырсөз',
     'settings.newPassword': 'Жаңы сырсөз',
     'settings.confirmPassword': 'Жаңы сырсөздү ырастаңыз',
+
+    // Telegram
+    'settings.telegramNotifications': 'Telegram билдирүүлөр',
+    'settings.telegramNotificationsDesc': 'Telegram аркылуу билдирүүлөрдү алуу',
+    'settings.telegramConnected': 'Туташкан',
+    'settings.telegramNotConnected': 'Туташкан эмес',
+    'settings.telegramConnect': 'Telegram туташтыруу',
+    'settings.telegramDisconnect': 'Ажыратуу',
+    'settings.telegramConnectTitle': 'Telegram туташтыруу',
+    'settings.telegramConnectDesc': 'QR-кодду сканерлеңиз же шилтемени басыңыз',
+    'settings.telegramCode': 'Сиздин код',
+    'settings.telegramOpenBot': 'Telegram ботту ачуу',
+    'settings.telegramConnectedAs': 'Туташкан',
+    'settings.inAppNotifications': 'Колдонмодогу билдирүүлөр',
+    'settings.inAppNotificationsDesc': 'Колдонмодо билдирүүлөрдү көрсөтүү',
+    'settings.notificationChannels': 'Билдирүү каналдары',
+    'settings.mentioned': 'Мени кимдир бирөө айтканда',
+    'settings.projectInvite': 'Долбоорго чакыруу алганда',
 
     // Common
     'common.save': 'Сактоо',

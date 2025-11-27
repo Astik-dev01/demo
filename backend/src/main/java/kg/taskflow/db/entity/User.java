@@ -46,6 +46,16 @@ public class User extends BaseEntity implements UserDetails {
     @Builder.Default
     private Boolean isEmailVerified = false;
 
+    // Telegram integration fields
+    @Column(name = "employee_code", unique = true, length = 8)
+    private String employeeCode;
+
+    @Column(name = "telegram_chat_id")
+    private Long telegramChatId;
+
+    @Column(name = "telegram_username", length = 50)
+    private String telegramUsername;
+
     @ManyToMany(fetch = FetchType.EAGER)
     @JoinTable(
             name = "sys_user_roles",
@@ -94,5 +104,22 @@ public class User extends BaseEntity implements UserDetails {
 
     public String getFullName() {
         return firstName + " " + lastName;
+    }
+
+    // Telegram helper methods
+    public boolean isTelegramRegistered() {
+        return telegramChatId != null;
+    }
+
+    public void generateEmployeeCode() {
+        if (employeeCode == null) {
+            String characters = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
+            StringBuilder code = new StringBuilder("TF");
+            java.util.Random random = new java.util.Random();
+            for (int i = 0; i < 6; i++) {
+                code.append(characters.charAt(random.nextInt(characters.length())));
+            }
+            this.employeeCode = code.toString();
+        }
     }
 }

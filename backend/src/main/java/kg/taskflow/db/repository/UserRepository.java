@@ -30,4 +30,12 @@ public interface UserRepository extends JpaRepository<User, UUID>, JpaSpecificat
 
     @Query("SELECT u FROM User u WHERE u.isDeleted = false AND u.isActive = true")
     java.util.List<User> findAllActive();
+
+    // Telegram integration
+    Optional<User> findByEmployeeCode(String employeeCode);
+
+    Optional<User> findByTelegramChatId(Long telegramChatId);
+
+    @Query("SELECT u FROM User u WHERE u.telegramChatId = :chatId AND u.isDeleted = false")
+    Optional<User> findActiveByChatId(Long chatId);
 }

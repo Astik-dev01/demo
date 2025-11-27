@@ -60,6 +60,13 @@ dependencies {
     implementation 'org.apache.commons:commons-lang3'
     implementation 'commons-io:commons-io:2.15.1'
 
+    // Telegram Bot
+    implementation 'org.telegram:telegrambots:6.9.7.1'
+
+    // QR Code
+    implementation 'com.google.zxing:core:3.5.2'
+    implementation 'com.google.zxing:javase:3.5.2'
+
     // Testing
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
     testImplementation 'org.springframework.security:spring-security-test'
