@@ -1,6 +1,6 @@
 # TaskFlow
 
-Modern project management system with Kanban boards, task tracking, and team collaboration.
+Modern project management system with Kanban boards, task tracking, team collaboration, and Telegram notifications.
 
 ## Tech Stack
 
@@ -12,25 +12,50 @@ Modern project management system with Kanban boards, task tracking, and team col
 - **Flyway** - Database migrations
 - **JWT** - Authentication
 - **MapStruct** - DTO mapping
+- **Telegram Bot API** - Push notifications
 
 ### Frontend
 - **Next.js 14** (App Router)
 - **TypeScript**
 - **Tailwind CSS**
-- **shadcn/ui** - UI components
+- **shadcn/ui** - UI components (Radix UI)
+- **Zustand** - State management
 - **React Hook Form** + **Zod** - Form validation
 - **Axios** - HTTP client
 
 ## Features
 
+### Core Features
 - **Project Management** - Create and manage projects with customizable workflows
 - **Kanban Boards** - Drag-and-drop task management
-- **Task Tracking** - Priorities, statuses, assignees, due dates
-- **Team Collaboration** - Invite members, assign roles
-- **Admin Panel** - User, role, and permission management
-- **Multi-language** - English, Russian, Kyrgyz support
-- **Real-time Updates** - WebSocket notifications
+- **Task Tracking** - Priorities, statuses, assignees, due dates, subtasks
+- **Team Collaboration** - Invite members, assign roles, manage permissions
+- **Comments** - Task discussions with @mentions
 - **File Attachments** - Upload and manage files via MinIO
+
+### Admin Panel
+- **User Management** - CRUD operations, role assignment, block/unblock
+- **Role Management** - Create custom roles with permissions
+- **Permission Matrix** - Route-based access control (GET/POST/PUT/DELETE)
+- **Project Overview** - Archive, delete, restore projects
+- **Task Overview** - View and manage all tasks
+- **Handbooks** - Statuses, priorities, project types, tag categories
+
+### Notifications
+- **In-App Notifications** - Real-time notification center
+- **Telegram Integration** - Push notifications to Telegram
+- **Notification Types**:
+  - Task assigned
+  - Task completed
+  - New comment
+  - @Mention
+  - Project/Team invitation
+  - Deadline reminders (3 days, 1 day, today)
+- **User Preferences** - Enable/disable by channel and type
+
+### Internationalization
+- **Multi-language** - English, Russian, Kyrgyz support
+- **Localized UI** - All labels and messages translated
 
 ## Project Structure
 
@@ -40,27 +65,39 @@ evo/
 │   ├── src/main/java/kg/taskflow/
 │   │   ├── config/         # Configuration classes
 │   │   ├── controller/     # REST controllers
+│   │   ├── db/
+│   │   │   ├── entity/     # JPA entities
+│   │   │   └── repository/ # Spring Data repositories
 │   │   ├── dto/            # Data Transfer Objects
-│   │   ├── entity/         # JPA entities
 │   │   ├── mapper/         # MapStruct mappers
-│   │   ├── repository/     # Spring Data repositories
-│   │   ├── security/       # JWT & security
-│   │   └── service/        # Business logic
+│   │   ├── scheduler/      # Scheduled tasks (deadlines)
+│   │   ├── security/       # JWT & security filters
+│   │   ├── service/        # Business logic
+│   │   └── telegram/       # Telegram bot integration
 │   └── src/main/resources/
-│       └── db/migration/   # Flyway migrations
+│       └── db/migration/   # Flyway migrations (21 migrations)
 │
 ├── frontend/               # Next.js application
 │   ├── src/
 │   │   ├── app/           # App Router pages
+│   │   │   ├── (auth)/    # Login, Register
+│   │   │   └── (dashboard)/
+│   │   │       ├── admin/ # Admin panel pages
+│   │   │       ├── projects/ # Project pages
+│   │   │       └── settings/ # User settings
 │   │   ├── components/    # React components
-│   │   ├── services/      # API services
+│   │   │   └── ui/        # shadcn/ui components
+│   │   ├── contexts/      # React contexts
 │   │   ├── hooks/         # Custom hooks
-│   │   └── lib/           # Utilities
+│   │   ├── services/      # API services
+│   │   ├── stores/        # Zustand stores
+│   │   └── types/         # TypeScript types
 │   └── public/            # Static assets
 │
 └── docker/                 # Docker configurations
     ├── backend/
-    │   └── Dockerfile
+    │   ├── Dockerfile
+    │   └── docker-compose.simple.yml
     └── frontend/
         ├── Dockerfile
         └── docker-compose.yml
@@ -73,15 +110,15 @@ evo/
 - Java 21
 - Node.js 20+
 - PostgreSQL 15+
-- Redis (optional)
-- MinIO (optional)
+- Redis (optional, for caching)
+- MinIO (optional, for file storage)
 
 ### Backend Setup
 
 ```bash
 cd backend
 
-# Configure database in application.properties
+# Configure database in application.properties or application-local.properties
 # spring.datasource.url=jdbc:postgresql://localhost:5432/taskflow_db
 # spring.datasource.username=your_user
 # spring.datasource.password=your_password
@@ -129,7 +166,7 @@ docker-compose up -d
 
 # Backend (configure environment variables)
 cd docker/backend
-docker-compose up -d
+docker-compose -f docker-compose.simple.yml up -d
 ```
 
 ### Environment Variables
@@ -143,7 +180,12 @@ docker-compose up -d
 | `JWT_SECRET` | JWT signing key | - |
 | `CORS_ALLOWED_ORIGINS` | Allowed CORS origins | - |
 | `MINIO_ENDPOINT` | MinIO server URL | - |
-| `REDIS_HOST` | Redis host | - |
+| `MINIO_ACCESS_KEY` | MinIO access key | - |
+| `MINIO_SECRET_KEY` | MinIO secret key | - |
+| `REDIS_HOST` | Redis host | localhost |
+| `REDIS_PORT` | Redis port | 6379 |
+| `TELEGRAM_BOT_TOKEN` | Telegram bot token | - |
+| `TELEGRAM_BOT_USERNAME` | Telegram bot username | - |
 
 #### Frontend
 | Variable | Description | Default |
@@ -166,16 +208,56 @@ Location: `backend/src/main/resources/db/migration/`
 
 Naming convention: `V{version}__{description}.sql`
 
+Current migrations:
+- V001-V010: Core schema (users, projects, boards, tasks)
+- V011-V015: Permissions and roles
+- V016-V019: Attachments and analytics
+- V020: Telegram integration
+- V021: Notification settings routes
+
 ## Admin Panel
 
 Access the admin panel at `/admin` (requires ADMIN role):
 
-- **Users** - Manage system users
-- **Roles** - Configure system roles
-- **Permissions** - Set up route-based permissions
-- **Projects** - View/manage all projects
-- **Tasks** - View/manage all tasks
-- **Handbooks** - Manage statuses, priorities, tags
+| Section | Features |
+|---------|----------|
+| **Dashboard** | System overview and statistics |
+| **Users** | Create, edit, block/unblock, assign roles, soft delete/restore |
+| **Roles** | Create custom roles, toggle active status |
+| **Permissions** | Permission matrix with HTTP method controls |
+| **Projects** | View all projects, archive/unarchive, delete/restore |
+| **Tasks** | View all tasks, delete/restore |
+| **Handbooks** | |
+| - Statuses | Task statuses with colors and final flag |
+| - Priorities | Task priorities with levels |
+| - Project Types | Project categorization |
+| - Tag Categories | Tag organization |
+
+## Telegram Notifications Setup
+
+1. Create a bot via [@BotFather](https://t.me/BotFather)
+2. Get the bot token and username
+3. Configure environment variables:
+   ```
+   TELEGRAM_BOT_ENABLED=true
+   TELEGRAM_BOT_TOKEN=your_bot_token
+   TELEGRAM_BOT_USERNAME=your_bot_username
+   ```
+4. Users can connect their Telegram in Settings page
+5. Notifications are sent based on user preferences
+
+### Supported Bot Commands
+- `/start <code>` - Link Telegram account
+- `/status` - Check connection status
+- `/help` - Show available commands
+- `/unlink` - Disconnect Telegram account
+
+## Scheduled Tasks
+
+| Task | Schedule | Description |
+|------|----------|-------------|
+| Route Cache Refresh | Every 5 minutes | Updates permission cache |
+| Deadline Reminders | Daily at 9:00 AM | Sends reminders for upcoming deadlines |
 
 ## License
 
