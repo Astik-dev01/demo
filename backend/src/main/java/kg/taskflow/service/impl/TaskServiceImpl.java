@@ -13,6 +13,7 @@ import kg.taskflow.exception.BadRequestException;
 import kg.taskflow.exception.ForbiddenException;
 import kg.taskflow.exception.NotFoundException;
 import kg.taskflow.mapper.TaskMapper;
+import kg.taskflow.service.NotificationService;
 import kg.taskflow.service.ProjectService;
 import kg.taskflow.service.TaskService;
 import lombok.RequiredArgsConstructor;
@@ -44,6 +45,7 @@ public class TaskServiceImpl implements TaskService {
     private final HBTagCategoryRepository tagCategoryRepository;
     private final TaskMapper taskMapper;
     private final ProjectService projectService;
+    private final NotificationService notificationService;
 
     @Override
     @Transactional
@@ -105,6 +107,18 @@ public class TaskServiceImpl implements TaskService {
         }
 
         task = taskRepository.save(task);
+
+        // Notify assignee about new task assignment
+        if (task.getAssignee() != null && !task.getAssignee().getId().equals(currentUser.getId())) {
+            String taskKey = project.getProjectKey() + "-" + task.getNumber();
+            notificationService.notifyTaskAssigned(
+                    task.getAssignee().getId(),
+                    task.getId(),
+                    taskKey,
+                    task.getTitle()
+            );
+        }
+
         return getTaskDto(task);
     }
 
@@ -164,6 +178,9 @@ public class TaskServiceImpl implements TaskService {
         checkProjectAccess(task.getProject().getId());
 
         User currentUser = getCurrentUser();
+        String taskKey = task.getProject().getProjectKey() + "-" + task.getNumber();
+        UUID previousAssigneeId = task.getAssignee() != null ? task.getAssignee().getId() : null;
+        boolean wasCompleted = task.getCompletedAt() != null;
 
         taskMapper.updateEntity(task, request);
         task.setUpdatedBy(currentUser.getId());
@@ -180,6 +197,7 @@ public class TaskServiceImpl implements TaskService {
             task.setPriority(priority);
         }
 
+        boolean justCompleted = false;
         if (request.getStatusId() != null) {
             HBTaskStatus status = statusRepository.findById(request.getStatusId())
                     .orElseThrow(() -> new NotFoundException("Status", request.getStatusId()));
@@ -187,6 +205,7 @@ public class TaskServiceImpl implements TaskService {
 
             if (Boolean.TRUE.equals(status.isFinal()) && task.getCompletedAt() == null) {
                 task.complete();
+                justCompleted = true;
             }
         }
 
@@ -201,6 +220,32 @@ public class TaskServiceImpl implements TaskService {
         }
 
         task = taskRepository.save(task);
+
+        // Notify new assignee if assignee changed
+        if (task.getAssignee() != null &&
+            !task.getAssignee().getId().equals(previousAssigneeId) &&
+            !task.getAssignee().getId().equals(currentUser.getId())) {
+            notificationService.notifyTaskAssigned(
+                    task.getAssignee().getId(),
+                    task.getId(),
+                    taskKey,
+                    task.getTitle()
+            );
+        }
+
+        // Notify reporter about task completion (if not self-completed)
+        if (justCompleted && !wasCompleted &&
+            task.getReporter() != null &&
+            !task.getReporter().getId().equals(currentUser.getId())) {
+            notificationService.notifyTaskCompleted(
+                    task.getReporter().getId(),
+                    task.getId(),
+                    taskKey,
+                    task.getTitle(),
+                    currentUser.getFullName()
+            );
+        }
+
         return getTaskDto(task);
     }
 
@@ -209,6 +254,9 @@ public class TaskServiceImpl implements TaskService {
     public void move(UUID id, MoveTaskRequest request) {
         Task task = findTaskById(id);
         checkProjectAccess(task.getProject().getId());
+
+        User currentUser = getCurrentUser();
+        boolean wasCompleted = task.getCompletedAt() != null;
 
         BoardColumn newColumn = columnRepository.findByIdAndIsDeletedFalse(request.getColumnId())
                 .orElseThrow(() -> new NotFoundException("Column", request.getColumnId()));
@@ -239,15 +287,31 @@ public class TaskServiceImpl implements TaskService {
         task.setPosition(request.getPosition());
 
         // Update status if column has associated status
+        boolean justCompleted = false;
         if (newColumn.getStatus() != null) {
             task.setStatus(newColumn.getStatus());
             if (Boolean.TRUE.equals(newColumn.getStatus().isFinal()) && task.getCompletedAt() == null) {
                 task.complete();
+                justCompleted = true;
             }
         }
 
-        task.setUpdatedBy(getCurrentUser().getId());
+        task.setUpdatedBy(currentUser.getId());
         taskRepository.save(task);
+
+        // Notify reporter about task completion (if not self-completed)
+        if (justCompleted && !wasCompleted &&
+            task.getReporter() != null &&
+            !task.getReporter().getId().equals(currentUser.getId())) {
+            String taskKey = task.getProject().getProjectKey() + "-" + task.getNumber();
+            notificationService.notifyTaskCompleted(
+                    task.getReporter().getId(),
+                    task.getId(),
+                    taskKey,
+                    task.getTitle(),
+                    currentUser.getFullName()
+            );
+        }
     }
 
     @Override
@@ -351,6 +415,32 @@ public class TaskServiceImpl implements TaskService {
         }
 
         comment = commentRepository.save(comment);
+
+        // Notify assignee and reporter about new comment
+        String taskKey = task.getProject().getProjectKey() + "-" + task.getNumber();
+
+        // Notify assignee (if not the commenter)
+        if (task.getAssignee() != null && !task.getAssignee().getId().equals(currentUser.getId())) {
+            notificationService.notifyCommentAdded(
+                    task.getAssignee().getId(),
+                    task.getId(),
+                    taskKey,
+                    currentUser.getFullName()
+            );
+        }
+
+        // Notify reporter (if not the commenter and not the same as assignee)
+        if (task.getReporter() != null &&
+            !task.getReporter().getId().equals(currentUser.getId()) &&
+            (task.getAssignee() == null || !task.getReporter().getId().equals(task.getAssignee().getId()))) {
+            notificationService.notifyCommentAdded(
+                    task.getReporter().getId(),
+                    task.getId(),
+                    taskKey,
+                    currentUser.getFullName()
+            );
+        }
+
         return taskMapper.toCommentDto(comment);
     }
 

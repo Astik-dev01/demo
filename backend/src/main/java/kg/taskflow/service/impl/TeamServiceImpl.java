@@ -12,6 +12,7 @@ import kg.taskflow.exception.ConflictException;
 import kg.taskflow.exception.ForbiddenException;
 import kg.taskflow.exception.NotFoundException;
 import kg.taskflow.mapper.TeamMapper;
+import kg.taskflow.service.NotificationService;
 import kg.taskflow.service.TeamService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -32,6 +33,7 @@ public class TeamServiceImpl implements TeamService {
     private final TeamMemberRepository memberRepository;
     private final UserRepository userRepository;
     private final TeamMapper teamMapper;
+    private final NotificationService notificationService;
 
     private static final String ROLE_OWNER = "OWNER";
     private static final String ROLE_ADMIN = "ADMIN";
@@ -122,6 +124,16 @@ public class TeamServiceImpl implements TeamService {
                 .build();
 
         member = memberRepository.save(member);
+
+        // Notify the new member about the invitation
+        User currentUser = getCurrentUser();
+        notificationService.notifyTeamInvite(
+                userId,
+                team.getId(),
+                team.getName(),
+                currentUser.getFullName()
+        );
+
         return teamMapper.toMemberDto(member);
     }
 

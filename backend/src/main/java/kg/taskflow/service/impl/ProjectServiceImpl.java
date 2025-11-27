@@ -20,6 +20,7 @@ import kg.taskflow.exception.ForbiddenException;
 import kg.taskflow.exception.NotFoundException;
 import kg.taskflow.mapper.ProjectMapper;
 import kg.taskflow.service.BoardService;
+import kg.taskflow.service.NotificationService;
 import kg.taskflow.service.ProjectService;
 import lombok.RequiredArgsConstructor;
 import lombok.Setter;
@@ -48,6 +49,7 @@ public class ProjectServiceImpl implements ProjectService {
     private final HBProjectTypeRepository projectTypeRepository;
     private final HBRoleInProjectRepository roleRepository;
     private final ProjectMapper projectMapper;
+    private final NotificationService notificationService;
 
     @Setter
     @Autowired
@@ -278,6 +280,15 @@ public class ProjectServiceImpl implements ProjectService {
                 .build();
 
         member = memberRepository.save(member);
+
+        // Notify the new member about the invitation
+        notificationService.notifyProjectInvite(
+                user.getId(),
+                project.getId(),
+                project.getName(),
+                currentUser.getFullName()
+        );
+
         return projectMapper.toMemberDto(member);
     }
 

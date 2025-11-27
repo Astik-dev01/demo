@@ -8,6 +8,7 @@ import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
 
+import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -138,4 +139,22 @@ public interface TaskRepository extends JpaRepository<Task, UUID>, JpaSpecificat
         AND t.isDeleted = false
     """)
     long countRemainingAtDate(UUID projectId, java.time.LocalDateTime date);
+
+    @Query("""
+        SELECT t FROM Task t
+        WHERE t.assignee IS NOT NULL
+        AND t.dueDate = :date
+        AND t.completedAt IS NULL
+        AND t.isDeleted = false
+    """)
+    List<Task> findTasksDueOn(LocalDate date);
+
+    @Query("""
+        SELECT t FROM Task t
+        WHERE t.assignee IS NOT NULL
+        AND t.dueDate BETWEEN :startDate AND :endDate
+        AND t.completedAt IS NULL
+        AND t.isDeleted = false
+    """)
+    List<Task> findTasksDueBetween(LocalDate startDate, LocalDate endDate);
 }

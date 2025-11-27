@@ -19,6 +19,14 @@ public interface NotificationService {
 
     void notifyMentioned(UUID userId, UUID taskId, String taskKey, String mentionerName);
 
+    void notifyTaskCompleted(UUID userId, UUID taskId, String taskKey, String taskTitle, String completedByName);
+
+    void notifyDeadlineReminder(UUID userId, UUID taskId, String taskKey, String taskTitle, int daysUntilDue);
+
+    void notifyProjectInvite(UUID userId, UUID projectId, String projectName, String inviterName);
+
+    void notifyTeamInvite(UUID userId, UUID teamId, String teamName, String inviterName);
+
     // Query
     Page<NotificationDto> getMyNotifications(Pageable pageable);
 

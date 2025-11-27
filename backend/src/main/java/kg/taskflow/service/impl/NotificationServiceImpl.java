@@ -128,6 +128,52 @@ public class NotificationServiceImpl implements NotificationService {
     }
 
     @Override
+    @Transactional
+    public void notifyTaskCompleted(UUID userId, UUID taskId, String taskKey, String taskTitle, String completedByName) {
+        Map<String, Object> data = new HashMap<>();
+        data.put("taskId", taskId.toString());
+        data.put("taskKey", taskKey);
+
+        notify(userId, "TASK_COMPLETED", "Task Completed",
+               taskKey + ": " + taskTitle + " was completed by " + completedByName, data);
+    }
+
+    @Override
+    @Transactional
+    public void notifyDeadlineReminder(UUID userId, UUID taskId, String taskKey, String taskTitle, int daysUntilDue) {
+        Map<String, Object> data = new HashMap<>();
+        data.put("taskId", taskId.toString());
+        data.put("taskKey", taskKey);
+        data.put("daysUntilDue", daysUntilDue);
+
+        String message = daysUntilDue == 0
+                ? taskKey + ": " + taskTitle + " is due today!"
+                : taskKey + ": " + taskTitle + " is due in " + daysUntilDue + " day(s)";
+
+        notify(userId, "DEADLINE_REMINDER", "Deadline Reminder", message, data);
+    }
+
+    @Override
+    @Transactional
+    public void notifyProjectInvite(UUID userId, UUID projectId, String projectName, String inviterName) {
+        Map<String, Object> data = new HashMap<>();
+        data.put("projectId", projectId.toString());
+
+        notify(userId, "PROJECT_INVITE", "Project Invitation",
+               inviterName + " invited you to project \"" + projectName + "\"", data);
+    }
+
+    @Override
+    @Transactional
+    public void notifyTeamInvite(UUID userId, UUID teamId, String teamName, String inviterName) {
+        Map<String, Object> data = new HashMap<>();
+        data.put("teamId", teamId.toString());
+
+        notify(userId, "TEAM_INVITE", "Team Invitation",
+               inviterName + " invited you to team \"" + teamName + "\"", data);
+    }
+
+    @Override
     public Page<NotificationDto> getMyNotifications(Pageable pageable) {
         User currentUser = getCurrentUser();
         Page<Notification> notifications = notificationRepository.findByUser(currentUser.getId(), pageable);
