@@ -7,7 +7,9 @@ WORKDIR /app
 
 # Copy package files from frontend directory
 COPY frontend/package.json frontend/package-lock.json* ./
-RUN npm ci
+
+# Install ALL dependencies (including devDependencies for build)
+RUN npm ci --include=dev
 
 # Stage 2: Builder
 FROM node:20-alpine AS builder
@@ -15,12 +17,12 @@ WORKDIR /app
 
 # Copy dependencies from deps stage
 COPY --from=deps /app/node_modules ./node_modules
+
 # Copy all frontend source code
 COPY frontend/ .
 
 # Set environment variables for build
 ENV NEXT_TELEMETRY_DISABLED=1
-ENV NODE_ENV=production
 
 # Build-time environment variables (required for Next.js build)
 ARG NEXT_PUBLIC_API_URL=https://demo-api-test.kgdigit.tech/api
@@ -60,14 +62,12 @@ RUN chown -R nextjs:nodejs /app
 
 USER nextjs
 
-# Аргументы для портов
+# Port configuration
 ARG EXTERNAL_PORT=3000
 ARG INTERNAL_PORT=3000
 
-# Expose internal port (где Next.js запускается)
 EXPOSE ${INTERNAL_PORT}
 
-# Environment variables для портов
 ENV EXTERNAL_PORT=${EXTERNAL_PORT}
 ENV INTERNAL_PORT=${INTERNAL_PORT}
 ENV PORT=${INTERNAL_PORT}
