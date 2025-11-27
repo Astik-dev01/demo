@@ -20,10 +20,10 @@ services:
       INTERNAL_PORT: ${INTERNAL_PORT:-3000}
 
       # API Configuration (uses domains, not localhost ports)
-      NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL:-https://fs-api-test.kgdigit.tech/api}
-      NEXT_PUBLIC_SOCKET_URL: ${NEXT_PUBLIC_SOCKET_URL:-wss://fs-api-test.kgdigit.tech}
+      NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL:-https://demo-api-test.kgdigit.tech/api}
+      NEXT_PUBLIC_SOCKET_URL: ${NEXT_PUBLIC_SOCKET_URL:-wss://demo-api-test.kgdigit.tech}
       NEXT_PUBLIC_MAP_TOKEN: ${NEXT_PUBLIC_MAP_TOKEN}
-      NEXT_PUBLIC_UPLOAD_URL: ${NEXT_PUBLIC_UPLOAD_URL:-https://fs-api-test.kgdigit.tech/uploads}
+      NEXT_PUBLIC_UPLOAD_URL: ${NEXT_PUBLIC_UPLOAD_URL:-https://demo-api-test.kgdigit.tech/uploads}
 
       # Application Settings
       APP_NAME: ${APP_NAME:-Taskflow System}
