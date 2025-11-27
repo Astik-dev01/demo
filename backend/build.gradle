@@ -63,6 +63,10 @@ dependencies {
     // Telegram Bot
     implementation 'org.telegram:telegrambots:6.9.7.1'
 
+    // JAXB (required for Telegram Bot on Java 11+)
+    implementation 'javax.xml.bind:jaxb-api:2.3.1'
+    implementation 'org.glassfish.jaxb:jaxb-runtime:2.3.9'
+
     // QR Code
     implementation 'com.google.zxing:core:3.5.2'
     implementation 'com.google.zxing:javase:3.5.2'
