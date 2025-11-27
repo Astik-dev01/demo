@@ -76,7 +76,7 @@ jobs:
           host: ${{ secrets.DO_HOST }}
           username: root
           key: ${{ secrets.DO_SSH_KEY }}
-          envs: GH_TOKEN,IMAGE_FULL,DB_PASSWORD,JWT_SECRET,MINIO_ACCESS_KEY,MINIO_SECRET_KEY,TELEGRAM_BOT_TOKEN,TELEGRAM_BOT_USERNAME
+          envs: GH_TOKEN,IMAGE_FULL,DB_PASSWORD,REDIS_PASSWORD,JWT_SECRET,MINIO_ACCESS_KEY,MINIO_SECRET_KEY,TELEGRAM_BOT_TOKEN,TELEGRAM_BOT_USERNAME
           script: |
             echo "Logging in to GitHub Container Registry..."
             echo "$GH_TOKEN" | docker login ghcr.io -u github --password-stdin
@@ -101,7 +101,7 @@ jobs:
               -e "SPRING_DATASOURCE_PASSWORD=$DB_PASSWORD" \
               -e SPRING_DATA_REDIS_HOST=taskflow-redis \
               -e SPRING_DATA_REDIS_PORT=6379 \
-              -e SPRING_DATA_REDIS_PASSWORD= \
+              -e "SPRING_DATA_REDIS_PASSWORD=$REDIS_PASSWORD" \
               -e "JWT_SECRET=$JWT_SECRET" \
               -e MINIO_ENDPOINT=http://taskflow-minio:9000 \
               -e "MINIO_USERNAME=$MINIO_ACCESS_KEY" \
@@ -154,6 +154,7 @@ jobs:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           IMAGE_FULL: ${{ needs.build-and-push.outputs.image_name }}
           DB_PASSWORD: ${{ secrets.DB_PASSWORD }}
+          REDIS_PASSWORD: ${{ secrets.REDIS_PASSWORD }}
           JWT_SECRET: ${{ secrets.JWT_SECRET }}
           MINIO_ACCESS_KEY: ${{ secrets.MINIO_ACCESS_KEY }}
           MINIO_SECRET_KEY: ${{ secrets.MINIO_SECRET_KEY }}
