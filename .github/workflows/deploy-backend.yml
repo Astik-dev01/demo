@@ -1,0 +1,27 @@
+name: Deploy Backend
+
+on:
+  push:
+    branches:
+      - develop
+    paths:
+      - 'backend/**'
+      - 'docker/backend/**'
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Deploy to Digital Ocean
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.DO_HOST }}
+          username: root
+          key: ${{ secrets.DO_SSH_KEY }}
+          script: |
+            cd /opt/taskflow
+            git pull origin develop
+            cd docker/backend
+            docker compose -f docker-compose.simple.yml up -d --build backend
+            echo "Deployment completed at $(date)"
