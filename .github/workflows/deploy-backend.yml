@@ -113,26 +113,32 @@ jobs:
             echo "Cleaning up old images..."
             docker image prune -f
 
-            echo "Waiting for application to start (initial delay 60s)..."
-            sleep 60
+            echo "Waiting for container to become healthy..."
 
-            # Wait up to 120 more seconds for health check
-            for i in {1..24}; do
-              echo "Health check attempt $i/24..."
-              HEALTH=$(curl -s http://localhost:8080/api/actuator/health 2>/dev/null || echo "")
-              if echo "$HEALTH" | grep -q '"status":"UP"'; then
-                echo "Deployment successful at $(date)"
-                echo "Health response: $HEALTH"
+            # Wait up to 180 seconds for container to be healthy
+            for i in {1..36}; do
+              STATUS=$(docker inspect --format='{{.State.Health.Status}}' taskflow-backend 2>/dev/null || echo "unknown")
+              echo "Attempt $i/36 - Container health status: $STATUS"
+
+              if [ "$STATUS" = "healthy" ]; then
+                echo "✅ Deployment successful at $(date)"
+                docker ps | grep taskflow-backend
                 exit 0
               fi
-              echo "Response: $HEALTH"
+
+              if [ "$STATUS" = "unhealthy" ]; then
+                echo "❌ Container is unhealthy, checking logs..."
+                docker logs taskflow-backend --tail 50
+                # Don't exit - container might recover
+              fi
+
               sleep 5
             done
 
-            echo "Health check failed after 180 seconds!"
+            echo "❌ Health check timeout after 180 seconds"
             echo "Container status:"
             docker ps -a | grep taskflow
-            echo "Container logs:"
+            echo "Last container logs:"
             docker logs taskflow-backend --tail 100
             exit 1
         env:

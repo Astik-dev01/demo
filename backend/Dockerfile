@@ -23,12 +23,15 @@ FROM eclipse-temurin:21-jre-alpine
 
 WORKDIR /app
 
+# Install curl for health checks
+RUN apk add --no-cache curl
+
 # Add non-root user for security
 RUN addgroup -S spring && adduser -S spring -G spring
 
-# Add health check
-HEALTHCHECK --interval=30s --timeout=10s --start-period=60s --retries=3 \
-    CMD wget --no-verbose --tries=1 --spider http://localhost:8080/api/actuator/health || exit 1
+# Add health check with longer start period for Spring Boot
+HEALTHCHECK --interval=30s --timeout=10s --start-period=90s --retries=5 \
+    CMD curl -sf http://localhost:8080/api/actuator/health | grep -q '"status":"UP"' || exit 1
 
 # Copy JAR from build stage
 COPY --from=build /app/build/libs/*.jar app.jar
