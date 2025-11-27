@@ -3,6 +3,7 @@
 import { useRouter } from 'next/navigation';
 import { Bell, LogOut, User } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { useAuthStore } from '@/stores/auth-store';
 import { authService } from '@/services/auth.service';
 import toast from 'react-hot-toast';
@@ -37,9 +38,12 @@ export function Header() {
         </Button>
 
         <div className="flex items-center gap-2">
-          <div className="flex h-8 w-8 items-center justify-center rounded-full bg-primary text-primary-foreground">
-            <User className="h-4 w-4" />
-          </div>
+          <Avatar className="h-8 w-8">
+            <AvatarImage src={user?.avatarUrl || undefined} alt={user?.fullName} />
+            <AvatarFallback className="bg-primary text-primary-foreground text-xs">
+              {user?.firstName?.[0]}{user?.lastName?.[0]}
+            </AvatarFallback>
+          </Avatar>
           {user && (
             <span className="text-sm font-medium">{user.fullName}</span>
           )}
