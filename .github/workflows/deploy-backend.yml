@@ -112,21 +112,24 @@ jobs:
               -e "TELEGRAM_BOT_USERNAME=$TELEGRAM_BOT_USERNAME" \
               $IMAGE_FULL:latest
 
-            echo "Waiting for health check..."
-            sleep 30
-
-            if curl -s http://localhost:8080/api/actuator/health | grep -q '"status":"UP"'; then
-              echo "Deployment successful!"
-            else
-              echo "Health check failed!"
-              docker logs taskflow-backend --tail 50
-              exit 1
-            fi
-
             echo "Cleaning up old images..."
             docker image prune -f
 
-            echo "Deployment completed at $(date)"
+            echo "Waiting for application to start..."
+
+            # Wait up to 120 seconds for health check
+            for i in {1..24}; do
+              echo "Health check attempt $i/24..."
+              if curl -s http://localhost:8080/api/actuator/health | grep -q '"status":"UP"'; then
+                echo "Deployment successful at $(date)"
+                exit 0
+              fi
+              sleep 5
+            done
+
+            echo "Health check failed after 120 seconds!"
+            docker logs taskflow-backend --tail 100
+            exit 1
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           IMAGE_FULL: ${{ needs.build-and-push.outputs.image_name }}
