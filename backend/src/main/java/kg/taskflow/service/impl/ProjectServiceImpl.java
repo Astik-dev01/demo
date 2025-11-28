@@ -86,7 +86,7 @@ public class ProjectServiceImpl implements ProjectService {
         boardService.createDefaultBoardForProject(project.getId());
 
         ProjectDto dto = projectMapper.toDto(project);
-        dto.setMemberCount(0L);
+        dto.setMemberCount(1L); // Owner counts as 1 member
         dto.setTaskCount(taskRepository.countByProject(project.getId()));
         return dto;
     }
@@ -97,7 +97,7 @@ public class ProjectServiceImpl implements ProjectService {
         checkViewAccess(project);
 
         ProjectDto dto = projectMapper.toDto(project);
-        dto.setMemberCount(memberRepository.countByProject(id));
+        dto.setMemberCount(memberRepository.countByProject(id) + 1); // +1 for owner
         dto.setTaskCount(taskRepository.countByProject(id));
         return dto;
     }
@@ -114,7 +114,8 @@ public class ProjectServiceImpl implements ProjectService {
         checkViewAccess(project);
 
         ProjectDto dto = projectMapper.toDto(project);
-        dto.setMemberCount(memberRepository.countByProject(project.getId()));
+        // +1 to include owner who is not stored in ProjectMember table
+                    dto.setMemberCount(memberRepository.countByProject(project.getId()) + 1);
         dto.setTaskCount(taskRepository.countByProject(project.getId()));
         return dto;
     }
@@ -126,7 +127,8 @@ public class ProjectServiceImpl implements ProjectService {
 
         return projects.map(project -> {
             ProjectListDto dto = projectMapper.toListDto(project);
-            dto.setMemberCount(memberRepository.countByProject(project.getId()));
+            // +1 to include owner who is not stored in ProjectMember table
+                    dto.setMemberCount(memberRepository.countByProject(project.getId()) + 1);
             return dto;
         });
     }
@@ -137,7 +139,8 @@ public class ProjectServiceImpl implements ProjectService {
 
         return projects.map(project -> {
             ProjectListDto dto = projectMapper.toListDto(project);
-            dto.setMemberCount(memberRepository.countByProject(project.getId()));
+            // +1 to include owner who is not stored in ProjectMember table
+                    dto.setMemberCount(memberRepository.countByProject(project.getId()) + 1);
             return dto;
         });
     }
@@ -154,7 +157,8 @@ public class ProjectServiceImpl implements ProjectService {
         List<ProjectListDto> content = projects.getContent().stream()
                 .map(project -> {
                     ProjectListDto dto = projectMapper.toListDto(project);
-                    dto.setMemberCount(memberRepository.countByProject(project.getId()));
+                    // +1 to include owner who is not stored in ProjectMember table
+                    dto.setMemberCount(memberRepository.countByProject(project.getId()) + 1);
                     return dto;
                 })
                 .toList();
@@ -172,7 +176,8 @@ public class ProjectServiceImpl implements ProjectService {
         List<ProjectListDto> content = projects.getContent().stream()
                 .map(project -> {
                     ProjectListDto dto = projectMapper.toListDto(project);
-                    dto.setMemberCount(memberRepository.countByProject(project.getId()));
+                    // +1 to include owner who is not stored in ProjectMember table
+                    dto.setMemberCount(memberRepository.countByProject(project.getId()) + 1);
                     return dto;
                 })
                 .toList();
@@ -210,7 +215,7 @@ public class ProjectServiceImpl implements ProjectService {
         project = projectRepository.save(project);
 
         ProjectDto dto = projectMapper.toDto(project);
-        dto.setMemberCount(memberRepository.countByProject(id));
+        dto.setMemberCount(memberRepository.countByProject(id) + 1); // +1 for owner
         dto.setTaskCount(taskRepository.countByProject(id));
         return dto;
     }
