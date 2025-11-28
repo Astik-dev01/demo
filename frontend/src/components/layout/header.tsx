@@ -1,9 +1,10 @@
 'use client';
 
 import { useRouter } from 'next/navigation';
-import { Bell, LogOut, User } from 'lucide-react';
+import { LogOut } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { NotificationBell } from '@/components/layout/notification-bell';
 import { useAuthStore } from '@/stores/auth-store';
 import { authService } from '@/services/auth.service';
 import toast from 'react-hot-toast';
@@ -33,9 +34,7 @@ export function Header() {
       </div>
 
       <div className="flex items-center gap-4">
-        <Button variant="ghost" size="icon">
-          <Bell className="h-5 w-5" />
-        </Button>
+        <NotificationBell />
 
         <div className="flex items-center gap-2">
           <Avatar className="h-8 w-8">
