@@ -38,6 +38,7 @@ public class RouteAccessInterceptor implements HandlerInterceptor {
             "/actuator/health",
             "/actuator/info",
             "/ws/",
+            "/ai/",
             "/error"
     ));
 
