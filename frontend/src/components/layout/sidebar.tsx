@@ -19,6 +19,7 @@ import {
   BookOpen,
   Key,
   ListTodo,
+  Sparkles,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useUIStore } from '@/stores/ui-store';
@@ -46,6 +47,7 @@ const adminNavigation = [
   { key: 'nav.admin.handbooks', href: '/admin/handbooks', icon: BookOpen },
   { key: 'nav.admin.roles', href: '/admin/roles', icon: Shield },
   { key: 'nav.admin.permissions', href: '/admin/permissions', icon: Key },
+  { key: 'nav.admin.aiGenerator', href: '/admin/ai-generator', icon: Sparkles },
 ];
 
 export function Sidebar() {
