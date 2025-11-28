@@ -210,6 +210,9 @@ public class TaskServiceImpl implements TaskService {
                 task.complete();
                 justCompleted = true;
             }
+
+            // Auto-move task to column with matching status
+            moveTaskToColumnByStatus(task, status);
         }
 
         if (request.getTagIds() != null) {
@@ -568,6 +571,34 @@ public class TaskServiceImpl implements TaskService {
         User currentUser = getCurrentUser();
         if (!projectService.isMember(projectId, currentUser.getId())) {
             throw new ForbiddenException("You do not have access to this project");
+        }
+    }
+
+    /**
+     * Moves task to the column that has the matching status.
+     * If no column with this status exists in the board, the task stays in its current column.
+     */
+    private void moveTaskToColumnByStatus(Task task, HBTaskStatus status) {
+        // Find column with matching status in the same board
+        Optional<BoardColumn> targetColumn = columnRepository.findByBoardAndStatus(
+                task.getBoard().getId(), status.getId());
+
+        if (targetColumn.isPresent() && !targetColumn.get().getId().equals(task.getColumn().getId())) {
+            BoardColumn newColumn = targetColumn.get();
+            BoardColumn oldColumn = task.getColumn();
+
+            // Reorder tasks in the old column (shift positions down)
+            List<Task> oldColumnTasks = taskRepository.findByColumn(oldColumn.getId());
+            for (Task t : oldColumnTasks) {
+                if (!t.getId().equals(task.getId()) && t.getPosition() > task.getPosition()) {
+                    t.setPosition(t.getPosition() - 1);
+                    taskRepository.save(t);
+                }
+            }
+
+            // Set new column and position (at the end)
+            task.setColumn(newColumn);
+            task.setPosition(taskRepository.getNextPosition(newColumn.getId()));
         }
     }
 

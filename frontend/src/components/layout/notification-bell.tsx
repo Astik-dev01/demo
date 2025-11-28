@@ -6,24 +6,28 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { notificationService } from '@/services/notification.service';
 import { Notification } from '@/types/notification.types';
+import { useAuthStore } from '@/stores/auth-store';
 import { formatDistanceToNow, parseISO } from 'date-fns';
 
 export function NotificationBell() {
+  const { user } = useAuthStore();
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [unreadCount, setUnreadCount] = useState(0);
   const [isOpen, setIsOpen] = useState(false);
 
   useEffect(() => {
+    if (!user) return; // Don't fetch if not authenticated
+
     loadUnreadCount();
     const interval = setInterval(loadUnreadCount, 30000); // Poll every 30 seconds
     return () => clearInterval(interval);
-  }, []);
+  }, [user]);
 
   useEffect(() => {
-    if (isOpen) {
+    if (isOpen && user) {
       loadNotifications();
     }
-  }, [isOpen]);
+  }, [isOpen, user]);
 
   const loadUnreadCount = async () => {
     try {

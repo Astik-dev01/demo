@@ -22,4 +22,7 @@ public interface BoardColumnRepository extends JpaRepository<BoardColumn, UUID> 
 
     @Query("SELECT COUNT(c) FROM BoardColumn c WHERE c.board.id = :boardId AND c.isDeleted = false")
     long countByBoard(UUID boardId);
+
+    @Query("SELECT c FROM BoardColumn c WHERE c.board.id = :boardId AND c.status.id = :statusId AND c.isDeleted = false")
+    Optional<BoardColumn> findByBoardAndStatus(UUID boardId, UUID statusId);
 }

@@ -42,8 +42,37 @@ public interface TimeEntryRepository extends JpaRepository<TimeEntry, UUID> {
     @Query("SELECT COALESCE(SUM(t.durationMinutes), 0) FROM TimeEntry t WHERE t.task.id = :taskId AND t.isDeleted = false")
     Integer getTotalMinutesByTask(UUID taskId);
 
-    @Query("SELECT COALESCE(SUM(t.durationMinutes), 0) FROM TimeEntry t WHERE t.user.id = :userId AND t.startedAt >= :startDate AND t.startedAt < :endDate AND t.isDeleted = false")
+    @Query("SELECT COALESCE(SUM(t.durationMinutes), 0) FROM TimeEntry t WHERE t.user.id = :userId AND t.startedAt >= :startDate AND t.startedAt < :endDate AND t.isDeleted = false AND t.isRunning = false")
     Integer getTotalMinutesByUserAndDateRange(UUID userId, LocalDateTime startDate, LocalDateTime endDate);
+
+    @Query("SELECT COALESCE(SUM(t.durationMinutes), 0) FROM TimeEntry t WHERE t.user.id = :userId AND t.startedAt >= :startDate AND t.startedAt < :endDate AND t.isDeleted = false AND t.isRunning = false AND t.isBillable = true")
+    Integer getBillableMinutesByUserAndDateRange(UUID userId, LocalDateTime startDate, LocalDateTime endDate);
+
+    // Get running entries for a user in date range (to calculate current duration)
+    @Query("SELECT t FROM TimeEntry t WHERE t.user.id = :userId AND t.startedAt >= :startDate AND t.startedAt < :endDate AND t.isDeleted = false AND t.isRunning = true")
+    List<TimeEntry> findRunningByUserAndDateRange(UUID userId, LocalDateTime startDate, LocalDateTime endDate);
+
+    // Daily breakdown queries
+    @Query("SELECT CAST(t.startedAt AS LocalDate) as date, COALESCE(SUM(t.durationMinutes), 0) as total " +
+           "FROM TimeEntry t WHERE t.user.id = :userId AND t.startedAt >= :startDate AND t.startedAt < :endDate " +
+           "AND t.isDeleted = false AND t.isRunning = false GROUP BY CAST(t.startedAt AS LocalDate) ORDER BY date")
+    List<Object[]> getDailyTotalsByUserAndDateRange(UUID userId, LocalDateTime startDate, LocalDateTime endDate);
+
+    @Query("SELECT CAST(t.startedAt AS LocalDate) as date, COALESCE(SUM(t.durationMinutes), 0) as total " +
+           "FROM TimeEntry t WHERE t.user.id = :userId AND t.startedAt >= :startDate AND t.startedAt < :endDate " +
+           "AND t.isDeleted = false AND t.isRunning = false AND t.isBillable = true GROUP BY CAST(t.startedAt AS LocalDate) ORDER BY date")
+    List<Object[]> getDailyBillableByUserAndDateRange(UUID userId, LocalDateTime startDate, LocalDateTime endDate);
+
+    // Project breakdown queries
+    @Query("SELECT t.task.project.id, t.task.project.name, COALESCE(SUM(t.durationMinutes), 0), COUNT(DISTINCT t.task.id) " +
+           "FROM TimeEntry t WHERE t.user.id = :userId AND t.startedAt >= :startDate AND t.startedAt < :endDate " +
+           "AND t.isDeleted = false AND t.isRunning = false GROUP BY t.task.project.id, t.task.project.name")
+    List<Object[]> getProjectTotalsByUserAndDateRange(UUID userId, LocalDateTime startDate, LocalDateTime endDate);
+
+    @Query("SELECT t.task.project.id, COALESCE(SUM(t.durationMinutes), 0) " +
+           "FROM TimeEntry t WHERE t.user.id = :userId AND t.startedAt >= :startDate AND t.startedAt < :endDate " +
+           "AND t.isDeleted = false AND t.isRunning = false AND t.isBillable = true GROUP BY t.task.project.id")
+    List<Object[]> getProjectBillableByUserAndDateRange(UUID userId, LocalDateTime startDate, LocalDateTime endDate);
 
     Optional<TimeEntry> findByIdAndIsDeletedFalse(UUID id);
 }

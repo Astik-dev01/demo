@@ -25,7 +25,10 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.time.temporal.TemporalAdjusters;
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 
 @Service
@@ -242,21 +245,118 @@ public class TimeTrackingServiceImpl implements TimeTrackingService {
     @Override
     public TimeReportDto getMyReport(LocalDate startDate, LocalDate endDate) {
         User currentUser = getCurrentUser();
+        UUID userId = currentUser.getId();
+        LocalDateTime startDateTime = startDate.atStartOfDay();
+        LocalDateTime endDateTime = endDate.plusDays(1).atStartOfDay();
 
-        Integer totalMinutes = timeEntryRepository.getTotalMinutesByUserAndDateRange(
-                currentUser.getId(),
-                startDate.atStartOfDay(),
-                endDate.plusDays(1).atStartOfDay()
-        );
+        // Get completed entries totals
+        Integer completedMinutes = timeEntryRepository.getTotalMinutesByUserAndDateRange(
+                userId, startDateTime, endDateTime);
+        Integer billableMinutes = timeEntryRepository.getBillableMinutesByUserAndDateRange(
+                userId, startDateTime, endDateTime);
+
+        // Add running timers duration
+        List<TimeEntry> runningEntries = timeEntryRepository.findRunningByUserAndDateRange(
+                userId, startDateTime, endDateTime);
+        int runningMinutes = 0;
+        int runningBillableMinutes = 0;
+        for (TimeEntry entry : runningEntries) {
+            int duration = entry.calculateDuration();
+            runningMinutes += duration;
+            if (Boolean.TRUE.equals(entry.getIsBillable())) {
+                runningBillableMinutes += duration;
+            }
+        }
+
+        int totalMinutes = (completedMinutes != null ? completedMinutes : 0) + runningMinutes;
+        int totalBillable = (billableMinutes != null ? billableMinutes : 0) + runningBillableMinutes;
+
+        // Build daily breakdown
+        List<DailyTimeDto> dailyBreakdown = buildDailyBreakdown(userId, startDate, endDate, startDateTime, endDateTime);
+
+        // Build project breakdown
+        List<ProjectTimeDto> projectBreakdown = buildProjectBreakdown(userId, startDateTime, endDateTime);
 
         return TimeReportDto.builder()
-                .userId(currentUser.getId())
+                .userId(userId)
                 .userName(currentUser.getFullName())
                 .startDate(startDate)
                 .endDate(endDate)
-                .totalMinutes(totalMinutes != null ? totalMinutes : 0)
-                .billableMinutes(totalMinutes != null ? totalMinutes : 0) // Simplified
+                .totalMinutes(totalMinutes)
+                .billableMinutes(totalBillable)
+                .dailyBreakdown(dailyBreakdown)
+                .projectBreakdown(projectBreakdown)
                 .build();
+    }
+
+    private List<DailyTimeDto> buildDailyBreakdown(UUID userId, LocalDate startDate, LocalDate endDate,
+                                                    LocalDateTime startDateTime, LocalDateTime endDateTime) {
+        // Get daily totals from DB
+        List<Object[]> dailyTotals = timeEntryRepository.getDailyTotalsByUserAndDateRange(
+                userId, startDateTime, endDateTime);
+        List<Object[]> dailyBillable = timeEntryRepository.getDailyBillableByUserAndDateRange(
+                userId, startDateTime, endDateTime);
+
+        // Convert to maps for easy lookup
+        Map<LocalDate, Integer> totalsByDate = new HashMap<>();
+        Map<LocalDate, Integer> billableByDate = new HashMap<>();
+
+        for (Object[] row : dailyTotals) {
+            LocalDate date = (LocalDate) row[0];
+            Integer total = ((Number) row[1]).intValue();
+            totalsByDate.put(date, total);
+        }
+        for (Object[] row : dailyBillable) {
+            LocalDate date = (LocalDate) row[0];
+            Integer total = ((Number) row[1]).intValue();
+            billableByDate.put(date, total);
+        }
+
+        // Build list for all days in range
+        List<DailyTimeDto> result = new ArrayList<>();
+        LocalDate current = startDate;
+        while (!current.isAfter(endDate)) {
+            result.add(DailyTimeDto.builder()
+                    .date(current)
+                    .totalMinutes(totalsByDate.getOrDefault(current, 0))
+                    .billableMinutes(billableByDate.getOrDefault(current, 0))
+                    .build());
+            current = current.plusDays(1);
+        }
+        return result;
+    }
+
+    private List<ProjectTimeDto> buildProjectBreakdown(UUID userId, LocalDateTime startDateTime, LocalDateTime endDateTime) {
+        List<Object[]> projectTotals = timeEntryRepository.getProjectTotalsByUserAndDateRange(
+                userId, startDateTime, endDateTime);
+        List<Object[]> projectBillable = timeEntryRepository.getProjectBillableByUserAndDateRange(
+                userId, startDateTime, endDateTime);
+
+        // Convert billable to map
+        Map<UUID, Integer> billableByProject = new HashMap<>();
+        for (Object[] row : projectBillable) {
+            UUID projectId = (UUID) row[0];
+            Integer total = ((Number) row[1]).intValue();
+            billableByProject.put(projectId, total);
+        }
+
+        // Build project breakdown
+        List<ProjectTimeDto> result = new ArrayList<>();
+        for (Object[] row : projectTotals) {
+            UUID projectId = (UUID) row[0];
+            String projectName = (String) row[1];
+            Integer totalMinutes = ((Number) row[2]).intValue();
+            Integer taskCount = ((Number) row[3]).intValue();
+
+            result.add(ProjectTimeDto.builder()
+                    .projectId(projectId)
+                    .projectName(projectName)
+                    .totalMinutes(totalMinutes)
+                    .billableMinutes(billableByProject.getOrDefault(projectId, 0))
+                    .taskCount(taskCount)
+                    .build());
+        }
+        return result;
     }
 
     // Helper methods
