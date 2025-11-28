@@ -18,14 +18,15 @@ WHERE p.is_deleted = false
   );
 
 -- Insert default columns for newly created boards
--- To Do column
-INSERT INTO board_columns (id, board_id, name, color, position, is_deleted, created_at, updated_at)
+-- To Do column (linked to TODO status)
+INSERT INTO board_columns (id, board_id, name, color, position, status_id, is_deleted, created_at, updated_at)
 SELECT
     gen_random_uuid(),
     b.id,
     'To Do',
     '#E5E7EB',
     0,
+    (SELECT id FROM hb_task_status WHERE alias = 'TODO' LIMIT 1),
     false,
     NOW(),
     NOW()
@@ -34,14 +35,15 @@ WHERE NOT EXISTS (
     SELECT 1 FROM board_columns bc WHERE bc.board_id = b.id AND bc.is_deleted = false
 );
 
--- In Progress column
-INSERT INTO board_columns (id, board_id, name, color, position, is_deleted, created_at, updated_at)
+-- In Progress column (linked to IN_PROGRESS status)
+INSERT INTO board_columns (id, board_id, name, color, position, status_id, is_deleted, created_at, updated_at)
 SELECT
     gen_random_uuid(),
     b.id,
     'In Progress',
     '#FEF3C7',
     1,
+    (SELECT id FROM hb_task_status WHERE alias = 'IN_PROGRESS' LIMIT 1),
     false,
     NOW(),
     NOW()
@@ -53,14 +55,15 @@ AND EXISTS (
     SELECT 1 FROM board_columns bc WHERE bc.board_id = b.id AND bc.name = 'To Do' AND bc.is_deleted = false
 );
 
--- Done column
-INSERT INTO board_columns (id, board_id, name, color, position, is_deleted, created_at, updated_at)
+-- Done column (linked to DONE status)
+INSERT INTO board_columns (id, board_id, name, color, position, status_id, is_deleted, created_at, updated_at)
 SELECT
     gen_random_uuid(),
     b.id,
     'Done',
     '#D1FAE5',
     2,
+    (SELECT id FROM hb_task_status WHERE alias = 'DONE' LIMIT 1),
     false,
     NOW(),
     NOW()

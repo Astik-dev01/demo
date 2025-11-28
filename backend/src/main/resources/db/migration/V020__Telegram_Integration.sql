@@ -28,6 +28,7 @@ CREATE TABLE IF NOT EXISTS user_notification_settings (
     notify_deadline_reminder BOOLEAN DEFAULT TRUE,
     notify_project_invite BOOLEAN DEFAULT TRUE,
 
+    is_deleted BOOLEAN DEFAULT FALSE,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
