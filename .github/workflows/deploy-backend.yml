@@ -76,7 +76,7 @@ jobs:
           host: ${{ secrets.DO_HOST }}
           username: root
           key: ${{ secrets.DO_SSH_KEY }}
-          envs: GH_TOKEN,IMAGE_FULL,DB_PASSWORD,REDIS_PASSWORD,JWT_SECRET,MINIO_ACCESS_KEY,MINIO_SECRET_KEY,TELEGRAM_BOT_TOKEN,TELEGRAM_BOT_USERNAME
+          envs: GH_TOKEN,IMAGE_FULL,DB_PASSWORD,REDIS_PASSWORD,JWT_SECRET,MINIO_ACCESS_KEY,MINIO_SECRET_KEY,TELEGRAM_BOT_TOKEN,TELEGRAM_BOT_USERNAME,GROQ_API_KEY
           script: |
             echo "Logging in to GitHub Container Registry..."
             echo "$GH_TOKEN" | docker login ghcr.io -u github --password-stdin
@@ -110,6 +110,7 @@ jobs:
               -e MINIO_PUBLIC_URL=https://api.freewayspace.space/files \
               -e "TELEGRAM_BOT_TOKEN=$TELEGRAM_BOT_TOKEN" \
               -e "TELEGRAM_BOT_USERNAME=$TELEGRAM_BOT_USERNAME" \
+              -e "GROQ_API_KEY=$GROQ_API_KEY" \
               -e "CORS_ALLOWED_ORIGINS=https://taskflow-test.netlify.app,https://api.freewayspace.space,http://localhost:3000" \
               $IMAGE_FULL:latest
 
@@ -161,3 +162,4 @@ jobs:
           MINIO_SECRET_KEY: ${{ secrets.MINIO_SECRET_KEY }}
           TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
           TELEGRAM_BOT_USERNAME: ${{ secrets.TELEGRAM_BOT_USERNAME }}
+          GROQ_API_KEY: ${{ secrets.GROQ_API_KEY }}
