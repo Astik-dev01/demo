@@ -40,7 +40,7 @@ export default function ProjectBoardPage() {
   };
 
   const handleTaskClick = (task: TaskListItem) => {
-    router.push(`/projects/${projectKey}/tasks/${task.key}`);
+    router.push(`/tasks/${task.id}`);
   };
 
   const handleAddTask = (columnId: string) => {

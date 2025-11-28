@@ -281,7 +281,7 @@ export default function AdminTasksPage() {
                             </DropdownMenuTrigger>
                             <DropdownMenuContent align="end">
                               <DropdownMenuItem asChild>
-                                <Link href={`/projects/${task.projectId}/tasks/${task.id}`}>
+                                <Link href={`/tasks/${task.id}`}>
                                   <ExternalLink className="mr-2 h-4 w-4" />
                                   View Task
                                 </Link>
