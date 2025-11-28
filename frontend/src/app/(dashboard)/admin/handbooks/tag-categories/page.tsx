@@ -48,6 +48,7 @@ export default function TagCategoriesPage() {
     handleSubmit,
     reset,
     setValue,
+    watch,
     formState: { errors, isSubmitting },
   } = useForm<TagCategoryForm>({
     resolver: zodResolver(tagCategorySchema),
@@ -158,8 +159,18 @@ export default function TagCategoriesPage() {
               <div className="space-y-2">
                 <Label htmlFor="color">Color</Label>
                 <div className="flex gap-2">
-                  <Input id="color" type="color" {...register('color')} className="h-10 w-14 p-1" />
-                  <Input {...register('color')} placeholder="#6B7280" />
+                  <Input
+                    id="color"
+                    type="color"
+                    value={watch('color') || '#6B7280'}
+                    onChange={(e) => setValue('color', e.target.value, { shouldDirty: true })}
+                    className="h-10 w-14 p-1"
+                  />
+                  <Input
+                    value={watch('color') || ''}
+                    onChange={(e) => setValue('color', e.target.value, { shouldDirty: true })}
+                    placeholder="#6B7280"
+                  />
                 </div>
                 {errors.color && <p className="text-sm text-destructive">{errors.color.message}</p>}
               </div>
