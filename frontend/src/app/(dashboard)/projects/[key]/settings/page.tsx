@@ -332,10 +332,15 @@ export default function ProjectSettingsPage() {
                   <div className="flex gap-2">
                     <Input
                       type="color"
-                      {...register('color')}
+                      value={watch('color') || '#3B82F6'}
+                      onChange={(e) => setValue('color', e.target.value, { shouldDirty: true })}
                       className="h-10 w-14 p-1"
                     />
-                    <Input {...register('color')} placeholder="#3B82F6" />
+                    <Input
+                      value={watch('color') || ''}
+                      onChange={(e) => setValue('color', e.target.value, { shouldDirty: true })}
+                      placeholder="#3B82F6"
+                    />
                   </div>
                   {errors.color && (
                     <p className="text-sm text-destructive">{errors.color.message}</p>
