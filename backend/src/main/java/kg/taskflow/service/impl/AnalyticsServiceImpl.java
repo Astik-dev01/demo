@@ -3,9 +3,7 @@ package kg.taskflow.service.impl;
 import kg.taskflow.db.entity.Project;
 import kg.taskflow.db.entity.Task;
 import kg.taskflow.db.entity.User;
-import kg.taskflow.db.repository.ProjectRepository;
-import kg.taskflow.db.repository.TaskRepository;
-import kg.taskflow.db.repository.TimeEntryRepository;
+import kg.taskflow.db.repository.*;
 import kg.taskflow.db.repository.hb.HBTaskPriorityRepository;
 import kg.taskflow.db.repository.hb.HBTaskStatusRepository;
 import kg.taskflow.dto.analytics.*;
@@ -35,6 +33,9 @@ public class AnalyticsServiceImpl implements AnalyticsService {
     private final ProjectRepository projectRepository;
     private final TaskRepository taskRepository;
     private final TimeEntryRepository timeEntryRepository;
+    private final UserRepository userRepository;
+    private final TeamRepository teamRepository;
+    private final ProjectMemberRepository projectMemberRepository;
     private final HBTaskStatusRepository statusRepository;
     private final HBTaskPriorityRepository priorityRepository;
 
@@ -81,6 +82,94 @@ public class AnalyticsServiceImpl implements AnalyticsService {
                 .tasksByPriority(tasksByPriority)
                 .recentActivity(recentActivity)
                 .upcomingDeadlines(upcomingDeadlines)
+                .build();
+    }
+
+    @Override
+    public AdminDashboardDto getAdminDashboard() {
+        LocalDateTime startOfMonth = LocalDate.now().withDayOfMonth(1).atStartOfDay();
+        LocalDateTime endOfMonth = startOfMonth.plusMonths(1);
+
+        // Users stats
+        long totalUsers = userRepository.count();
+        long activeUsers = userRepository.countActiveUsers();
+        long newUsersThisMonth = userRepository.countNewUsersAfter(startOfMonth);
+
+        // Projects stats
+        long totalProjects = projectRepository.countAll();
+        long activeProjects = projectRepository.countActive();
+        long archivedProjects = projectRepository.countArchived();
+
+        // Tasks stats
+        long totalTasks = taskRepository.count();
+        long completedTasks = taskRepository.countCompleted();
+        long overdueTasks = taskRepository.countAllOverdue();
+        long tasksCreatedThisMonth = taskRepository.countCreatedAfter(startOfMonth);
+
+        // Teams stats
+        long totalTeams = teamRepository.countActive();
+
+        // Time tracking stats
+        long totalTimeTracked = timeEntryRepository.getTotalMinutesAll();
+        long timeTrackedThisMonth = timeEntryRepository.getTotalMinutesInRange(startOfMonth, endOfMonth);
+
+        // Top projects
+        List<AdminDashboardDto.ProjectStatsDto> topProjects = projectRepository.findTopProjectsByTasks(PageRequest.of(0, 5))
+                .stream()
+                .map(row -> AdminDashboardDto.ProjectStatsDto.builder()
+                        .projectId(((UUID) row[0]).toString())
+                        .projectName((String) row[1])
+                        .projectKey((String) row[2])
+                        .taskCount(((Number) row[3]).longValue())
+                        .completedTaskCount(((Number) row[4]).longValue())
+                        .memberCount(((Number) row[5]).longValue())
+                        .build())
+                .collect(Collectors.toList());
+
+        // Top users
+        List<AdminDashboardDto.UserStatsDto> topUsers = userRepository.findTopUsersByCompletedTasks(PageRequest.of(0, 5))
+                .stream()
+                .map(row -> AdminDashboardDto.UserStatsDto.builder()
+                        .userId(((UUID) row[0]).toString())
+                        .userName((String) row[1])
+                        .avatarUrl((String) row[2])
+                        .completedTasks(((Number) row[3]).longValue())
+                        .totalTasks(((Number) row[4]).longValue())
+                        .timeTrackedMinutes(row[5] != null ? ((Number) row[5]).longValue() : 0)
+                        .build())
+                .collect(Collectors.toList());
+
+        // Recent system activity (latest tasks from all users)
+        List<RecentActivityDto> recentActivity = taskRepository.findRecentTasks(PageRequest.of(0, 10))
+                .stream()
+                .map(t -> RecentActivityDto.builder()
+                        .taskId(t.getId())
+                        .taskKey(t.getKey())
+                        .taskTitle(t.getTitle())
+                        .activityType("updated")
+                        .description("Task updated")
+                        .userName(t.getReporter() != null ? t.getReporter().getFullName() : "Unknown")
+                        .timestamp(t.getUpdatedAt())
+                        .build())
+                .collect(Collectors.toList());
+
+        return AdminDashboardDto.builder()
+                .totalUsers(totalUsers)
+                .activeUsers(activeUsers)
+                .newUsersThisMonth(newUsersThisMonth)
+                .totalProjects(totalProjects)
+                .activeProjects(activeProjects)
+                .archivedProjects(archivedProjects)
+                .totalTasks(totalTasks)
+                .completedTasks(completedTasks)
+                .overdueTasks(overdueTasks)
+                .tasksCreatedThisMonth(tasksCreatedThisMonth)
+                .totalTeams(totalTeams)
+                .totalTimeTrackedMinutes(totalTimeTracked)
+                .timeTrackedThisMonthMinutes(timeTrackedThisMonth)
+                .recentActivity(recentActivity)
+                .topProjects(topProjects)
+                .topUsers(topUsers)
                 .build();
     }
 

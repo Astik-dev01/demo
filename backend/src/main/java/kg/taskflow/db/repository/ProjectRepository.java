@@ -53,4 +53,25 @@ public interface ProjectRepository extends JpaRepository<Project, UUID>, JpaSpec
 
     @Query("SELECT p FROM Project p WHERE p.isArchived = false AND p.isDeleted = false ORDER BY p.updatedAt DESC")
     List<Project> findActiveProjects();
+
+    // Analytics queries
+    @Query("SELECT COUNT(p) FROM Project p WHERE p.isDeleted = false")
+    long countAll();
+
+    @Query("SELECT COUNT(p) FROM Project p WHERE p.isDeleted = false AND p.isArchived = false")
+    long countActive();
+
+    @Query("SELECT COUNT(p) FROM Project p WHERE p.isDeleted = false AND p.isArchived = true")
+    long countArchived();
+
+    @Query("""
+        SELECT p.id, p.name, p.projectKey,
+               (SELECT COUNT(t) FROM Task t WHERE t.project.id = p.id AND t.isDeleted = false),
+               (SELECT COUNT(t) FROM Task t WHERE t.project.id = p.id AND t.completedAt IS NOT NULL AND t.isDeleted = false),
+               (SELECT COUNT(pm) + 1 FROM ProjectMember pm WHERE pm.project.id = p.id AND pm.isDeleted = false)
+        FROM Project p
+        WHERE p.isDeleted = false
+        ORDER BY (SELECT COUNT(t) FROM Task t WHERE t.project.id = p.id AND t.isDeleted = false) DESC
+    """)
+    List<Object[]> findTopProjectsByTasks(Pageable pageable);
 }

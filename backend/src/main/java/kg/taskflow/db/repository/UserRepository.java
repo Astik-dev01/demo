@@ -6,6 +6,10 @@ import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
 
+import org.springframework.data.domain.Pageable;
+
+import java.time.LocalDateTime;
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -38,4 +42,22 @@ public interface UserRepository extends JpaRepository<User, UUID>, JpaSpecificat
 
     @Query("SELECT u FROM User u WHERE u.telegramChatId = :chatId AND u.isDeleted = false")
     Optional<User> findActiveByChatId(Long chatId);
+
+    // Analytics queries
+    @Query("SELECT COUNT(u) FROM User u WHERE u.isDeleted = false AND u.isActive = true")
+    long countActiveUsers();
+
+    @Query("SELECT COUNT(u) FROM User u WHERE u.isDeleted = false AND u.createdAt >= :date")
+    long countNewUsersAfter(LocalDateTime date);
+
+    @Query("""
+        SELECT u.id, CONCAT(u.firstName, ' ', u.lastName), u.avatarUrl,
+               (SELECT COUNT(t) FROM Task t WHERE t.assignee.id = u.id AND t.completedAt IS NOT NULL AND t.isDeleted = false),
+               (SELECT COUNT(t) FROM Task t WHERE t.assignee.id = u.id AND t.isDeleted = false),
+               (SELECT COALESCE(SUM(te.durationMinutes), 0) FROM TimeEntry te WHERE te.user.id = u.id AND te.isDeleted = false)
+        FROM User u
+        WHERE u.isDeleted = false AND u.isActive = true
+        ORDER BY (SELECT COUNT(t) FROM Task t WHERE t.assignee.id = u.id AND t.completedAt IS NOT NULL AND t.isDeleted = false) DESC
+    """)
+    List<Object[]> findTopUsersByCompletedTasks(Pageable pageable);
 }

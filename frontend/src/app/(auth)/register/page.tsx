@@ -51,7 +51,7 @@ export default function RegisterPage() {
       });
       setAuth(response.user, response.accessToken, response.refreshToken);
       toast.success('Account created successfully!');
-      router.push('/projects');
+      router.push('/dashboard');
     } catch (error: any) {
       toast.error(error.response?.data?.message || 'Registration failed');
     } finally {

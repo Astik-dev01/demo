@@ -26,6 +26,12 @@ public class AnalyticsController {
         return ResponseEntity.ok(analyticsService.getDashboardOverview());
     }
 
+    @GetMapping("/admin-dashboard")
+    @Operation(summary = "Get admin dashboard with system-wide statistics")
+    public ResponseEntity<AdminDashboardDto> getAdminDashboard() {
+        return ResponseEntity.ok(analyticsService.getAdminDashboard());
+    }
+
     @GetMapping("/projects/{projectId}")
     @Operation(summary = "Get project analytics")
     public ResponseEntity<ProjectAnalyticsDto> getProjectAnalytics(@PathVariable UUID projectId) {

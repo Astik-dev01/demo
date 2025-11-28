@@ -11,6 +11,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -202,4 +203,23 @@ public interface TaskRepository extends JpaRepository<Task, UUID>, JpaSpecificat
         ORDER BY t.updatedAt DESC
     """)
     List<Task> findRecentTasksWithDetails(UUID userId, Pageable pageable);
+
+    // Admin analytics queries
+    @Query("SELECT COUNT(t) FROM Task t WHERE t.isDeleted = false AND t.completedAt IS NOT NULL")
+    long countCompleted();
+
+    @Query("SELECT COUNT(t) FROM Task t WHERE t.isDeleted = false AND t.dueDate < CURRENT_DATE AND t.completedAt IS NULL")
+    long countAllOverdue();
+
+    @Query("SELECT COUNT(t) FROM Task t WHERE t.isDeleted = false AND t.createdAt >= :date")
+    long countCreatedAfter(LocalDateTime date);
+
+    @Query("""
+        SELECT DISTINCT t FROM Task t
+        LEFT JOIN FETCH t.reporter
+        LEFT JOIN FETCH t.project
+        WHERE t.isDeleted = false
+        ORDER BY t.updatedAt DESC
+    """)
+    List<Task> findRecentTasks(Pageable pageable);
 }

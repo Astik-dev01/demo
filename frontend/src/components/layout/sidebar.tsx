@@ -29,7 +29,7 @@ import { useLanguage } from '@/contexts/language-context';
 import { Separator } from '@/components/ui/separator';
 
 const navigation = [
-  { key: 'nav.dashboard', href: '/', icon: LayoutDashboard },
+  { key: 'nav.dashboard', href: '/dashboard', icon: LayoutDashboard },
   { key: 'nav.projects', href: '/projects', icon: FolderKanban },
   { key: 'nav.tasks', href: '/tasks', icon: CheckSquare },
   { key: 'nav.teams', href: '/teams', icon: Users },
@@ -78,9 +78,7 @@ export function Sidebar() {
 
       <nav className="flex-1 space-y-1 p-2 overflow-y-auto">
         {navigation.map((item) => {
-          const isActive = item.href === '/'
-            ? pathname === '/'
-            : pathname.startsWith(item.href);
+          const isActive = pathname === item.href || pathname.startsWith(item.href + '/');
           return (
             <Link
               key={item.key}

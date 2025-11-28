@@ -75,4 +75,11 @@ public interface TimeEntryRepository extends JpaRepository<TimeEntry, UUID> {
     List<Object[]> getProjectBillableByUserAndDateRange(UUID userId, LocalDateTime startDate, LocalDateTime endDate);
 
     Optional<TimeEntry> findByIdAndIsDeletedFalse(UUID id);
+
+    // Admin analytics queries
+    @Query("SELECT COALESCE(SUM(t.durationMinutes), 0) FROM TimeEntry t WHERE t.isDeleted = false AND t.isRunning = false")
+    long getTotalMinutesAll();
+
+    @Query("SELECT COALESCE(SUM(t.durationMinutes), 0) FROM TimeEntry t WHERE t.startedAt >= :startDate AND t.startedAt < :endDate AND t.isDeleted = false AND t.isRunning = false")
+    long getTotalMinutesInRange(LocalDateTime startDate, LocalDateTime endDate);
 }

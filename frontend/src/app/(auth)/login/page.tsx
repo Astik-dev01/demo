@@ -40,7 +40,7 @@ export default function LoginPage() {
       const response = await authService.login(data);
       setAuth(response.user, response.accessToken, response.refreshToken);
       toast.success('Welcome back!');
-      router.push('/projects');
+      router.push('/dashboard');
     } catch (error: any) {
       toast.error(error.response?.data?.message || 'Login failed');
     } finally {

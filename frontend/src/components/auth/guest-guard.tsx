@@ -16,7 +16,7 @@ export function GuestGuard({ children }: GuestGuardProps) {
 
   useEffect(() => {
     if (!isLoading && isAuthenticated) {
-      const redirect = searchParams.get('redirect') || ROUTES.PROJECTS;
+      const redirect = searchParams.get('redirect') || ROUTES.DASHBOARD;
       router.replace(redirect);
     }
   }, [isAuthenticated, isLoading, router, searchParams]);

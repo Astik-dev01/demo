@@ -9,6 +9,8 @@ public interface AnalyticsService {
 
     DashboardOverviewDto getDashboardOverview();
 
+    AdminDashboardDto getAdminDashboard();
+
     ProjectAnalyticsDto getProjectAnalytics(UUID projectId);
 
     BurndownChartDto getBurndownChart(UUID projectId, LocalDate startDate, LocalDate endDate);

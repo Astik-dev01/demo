@@ -12,9 +12,9 @@ export function middleware(request: NextRequest) {
   const isPublicPath = publicPaths.some((path) => pathname.startsWith(path));
   const isAuthPath = authPaths.some((path) => pathname.startsWith(path));
 
-  // If user is authenticated and trying to access auth pages, redirect to projects
+  // If user is authenticated and trying to access auth pages, redirect to dashboard
   if (accessToken && isAuthPath) {
-    return NextResponse.redirect(new URL('/projects', request.url));
+    return NextResponse.redirect(new URL('/dashboard', request.url));
   }
 
   // If user is not authenticated and trying to access protected route

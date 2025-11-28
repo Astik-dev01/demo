@@ -1,6 +1,7 @@
 import api from './api';
 import {
   DashboardOverview,
+  AdminDashboard,
   ProjectAnalytics,
   BurndownChart,
   VelocityChart,
@@ -9,6 +10,11 @@ import {
 export const analyticsService = {
   async getDashboardOverview(): Promise<DashboardOverview> {
     const response = await api.get<DashboardOverview>('/analytics/dashboard');
+    return response.data;
+  },
+
+  async getAdminDashboard(): Promise<AdminDashboard> {
+    const response = await api.get<AdminDashboard>('/analytics/admin-dashboard');
     return response.data;
   },
 

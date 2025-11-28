@@ -111,3 +111,41 @@ export interface VelocityChart {
   totalHoursSpent: number;
   dataPoints: VelocityDataPoint[];
 }
+
+// Admin Dashboard Types
+export interface ProjectStats {
+  projectId: string;
+  projectName: string;
+  projectKey: string;
+  taskCount: number;
+  completedTaskCount: number;
+  memberCount: number;
+}
+
+export interface UserStats {
+  userId: string;
+  userName: string;
+  avatarUrl: string | null;
+  completedTasks: number;
+  totalTasks: number;
+  timeTrackedMinutes: number;
+}
+
+export interface AdminDashboard {
+  totalUsers: number;
+  activeUsers: number;
+  newUsersThisMonth: number;
+  totalProjects: number;
+  activeProjects: number;
+  archivedProjects: number;
+  totalTasks: number;
+  completedTasks: number;
+  overdueTasks: number;
+  tasksCreatedThisMonth: number;
+  totalTeams: number;
+  totalTimeTrackedMinutes: number;
+  timeTrackedThisMonthMinutes: number;
+  recentActivity: RecentActivity[];
+  topProjects: ProjectStats[];
+  topUsers: UserStats[];
+}

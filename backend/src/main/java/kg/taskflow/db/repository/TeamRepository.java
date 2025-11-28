@@ -39,4 +39,8 @@ public interface TeamRepository extends JpaRepository<Team, UUID> {
 
     @Query("SELECT t FROM Team t WHERE t.isPublic = true AND t.isDeleted = false ORDER BY t.name")
     Page<Team> findPublicTeams(Pageable pageable);
+
+    // Analytics queries
+    @Query("SELECT COUNT(t) FROM Team t WHERE t.isDeleted = false")
+    long countActive();
 }
