@@ -23,6 +23,7 @@ import {
 import { useToast } from '@/components/ui/use-toast';
 import { teamService } from '@/services/team.service';
 import { Team, CreateTeamRequest } from '@/types/team.types';
+import { useLanguage } from '@/contexts/language-context';
 
 const teamSchema = z.object({
   name: z.string().min(1, 'Team name is required').max(200),
@@ -33,6 +34,7 @@ const teamSchema = z.object({
 type TeamForm = z.infer<typeof teamSchema>;
 
 export default function TeamsPage() {
+  const { t } = useLanguage();
   const [teams, setTeams] = useState<Team[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
@@ -73,63 +75,63 @@ export default function TeamsPage() {
     try {
       await teamService.create(data);
       toast({
-        title: 'Team created',
-        description: 'Your team has been successfully created.',
+        title: t('teams.created'),
+        description: t('teams.createdDesc'),
       });
       setDialogOpen(false);
       reset();
       loadTeams();
     } catch (error: any) {
       toast({
-        title: 'Error',
-        description: error.response?.data?.message || 'Failed to create team',
+        title: t('teams.error'),
+        description: error.response?.data?.message || t('teams.errorDesc'),
         variant: 'destructive',
       });
     }
   };
 
-  const filteredTeams = teams.filter((t) =>
-    t.name.toLowerCase().includes(searchQuery.toLowerCase())
+  const filteredTeams = teams.filter((team) =>
+    team.name.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold">Teams</h1>
-          <p className="text-muted-foreground">Manage your teams and collaborations</p>
+          <h1 className="text-3xl font-bold">{t('teams.title')}</h1>
+          <p className="text-muted-foreground">{t('teams.description')}</p>
         </div>
         <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
           <DialogTrigger asChild>
             <Button>
               <Plus className="mr-2 h-4 w-4" />
-              New Team
+              {t('teams.new')}
             </Button>
           </DialogTrigger>
           <DialogContent>
             <DialogHeader>
-              <DialogTitle>Create New Team</DialogTitle>
+              <DialogTitle>{t('teams.createNew')}</DialogTitle>
             </DialogHeader>
             <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
               <div className="space-y-2">
-                <Label htmlFor="name">Team Name</Label>
-                <Input id="name" {...register('name')} placeholder="My Team" />
+                <Label htmlFor="name">{t('teams.name')}</Label>
+                <Input id="name" {...register('name')} placeholder={t('teams.namePlaceholder')} />
                 {errors.name && <p className="text-sm text-destructive">{errors.name.message}</p>}
               </div>
               <div className="space-y-2">
-                <Label htmlFor="description">Description</Label>
+                <Label htmlFor="description">{t('teams.teamDescription')}</Label>
                 <Textarea
                   id="description"
                   {...register('description')}
-                  placeholder="Describe your team..."
+                  placeholder={t('teams.descPlaceholder')}
                   rows={3}
                 />
               </div>
               <div className="flex items-center justify-between">
                 <div className="space-y-0.5">
-                  <Label>Public Team</Label>
+                  <Label>{t('teams.public')}</Label>
                   <p className="text-sm text-muted-foreground">
-                    Anyone can discover and join this team
+                    {t('teams.publicDesc')}
                   </p>
                 </div>
                 <Switch
@@ -139,10 +141,10 @@ export default function TeamsPage() {
               </div>
               <div className="flex justify-end gap-2">
                 <Button type="button" variant="outline" onClick={() => setDialogOpen(false)}>
-                  Cancel
+                  {t('teams.cancel')}
                 </Button>
                 <Button type="submit" disabled={isSubmitting}>
-                  {isSubmitting ? 'Creating...' : 'Create Team'}
+                  {isSubmitting ? t('teams.creating') : t('teams.create')}
                 </Button>
               </div>
             </form>
@@ -154,7 +156,7 @@ export default function TeamsPage() {
         <div className="relative flex-1 max-w-md">
           <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
           <Input
-            placeholder="Search teams..."
+            placeholder={t('teams.search')}
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             className="pl-10"
@@ -169,13 +171,13 @@ export default function TeamsPage() {
       ) : filteredTeams.length === 0 && !searchQuery ? (
         <div className="flex flex-col items-center justify-center py-16 text-center">
           <Users className="h-16 w-16 text-muted-foreground mb-4" />
-          <h2 className="text-xl font-semibold mb-2">No teams yet</h2>
+          <h2 className="text-xl font-semibold mb-2">{t('teams.noTeams')}</h2>
           <p className="text-muted-foreground mb-6">
-            Create a team to collaborate with others
+            {t('teams.noTeamsDesc')}
           </p>
           <Button onClick={() => setDialogOpen(true)}>
             <Plus className="mr-2 h-4 w-4" />
-            Create Team
+            {t('teams.create')}
           </Button>
         </div>
       ) : (
@@ -205,7 +207,7 @@ export default function TeamsPage() {
                       </div>
                     </div>
                     {team.isPublic && (
-                      <Badge variant="secondary">Public</Badge>
+                      <Badge variant="secondary">{t('teams.publicBadge')}</Badge>
                     )}
                   </div>
                 </CardHeader>
@@ -217,7 +219,7 @@ export default function TeamsPage() {
                   )}
                   <div className="flex items-center gap-2 text-sm text-muted-foreground">
                     <Users className="h-4 w-4" />
-                    {team.memberCount + 1} members
+                    {team.memberCount + 1} {t('teams.members')}
                   </div>
                 </CardContent>
               </Card>
@@ -230,7 +232,7 @@ export default function TeamsPage() {
           >
             <CardContent className="flex flex-col items-center gap-2 py-8">
               <Plus className="h-8 w-8 text-muted-foreground" />
-              <span className="text-sm text-muted-foreground">Create New Team</span>
+              <span className="text-sm text-muted-foreground">{t('teams.createNew')}</span>
             </CardContent>
           </Card>
         </div>

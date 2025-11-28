@@ -9,8 +9,10 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Badge } from '@/components/ui/badge';
 import { projectService } from '@/services/project.service';
 import { ProjectListItem } from '@/types/project.types';
+import { useLanguage } from '@/contexts/language-context';
 
 export default function ProjectsPage() {
+  const { t } = useLanguage();
   const [projects, setProjects] = useState<ProjectListItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
@@ -53,13 +55,13 @@ export default function ProjectsPage() {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold">Projects</h1>
-          <p className="text-muted-foreground">Manage your projects and tasks</p>
+          <h1 className="text-3xl font-bold">{t('projects.title')}</h1>
+          <p className="text-muted-foreground">{t('projects.description')}</p>
         </div>
         <Link href="/projects/new">
           <Button>
             <Plus className="mr-2 h-4 w-4" />
-            New Project
+            {t('projects.new')}
           </Button>
         </Link>
       </div>
@@ -68,7 +70,7 @@ export default function ProjectsPage() {
         <div className="relative flex-1 max-w-md">
           <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
           <Input
-            placeholder="Search projects..."
+            placeholder={t('projects.search')}
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             className="pl-10"
@@ -93,14 +95,14 @@ export default function ProjectsPage() {
       ) : filteredProjects.length === 0 && !searchQuery ? (
         <div className="flex flex-col items-center justify-center py-16 text-center">
           <FolderKanban className="h-16 w-16 text-muted-foreground mb-4" />
-          <h2 className="text-xl font-semibold mb-2">No projects yet</h2>
+          <h2 className="text-xl font-semibold mb-2">{t('projects.noProjects')}</h2>
           <p className="text-muted-foreground mb-6">
-            Create your first project to start organizing tasks
+            {t('projects.noProjectsDesc')}
           </p>
           <Link href="/projects/new">
             <Button>
               <Plus className="mr-2 h-4 w-4" />
-              Create Project
+              {t('projects.create')}
             </Button>
           </Link>
         </div>
@@ -127,7 +129,7 @@ export default function ProjectsPage() {
                       {project.isArchived && (
                         <Badge variant="secondary">
                           <Archive className="h-3 w-3 mr-1" />
-                          Archived
+                          {t('projects.archived')}
                         </Badge>
                       )}
                     </div>
@@ -141,14 +143,14 @@ export default function ProjectsPage() {
                     <div className="flex items-center gap-4 text-sm text-muted-foreground">
                       <span className="flex items-center gap-1">
                         <Users className="h-4 w-4" />
-                        {project.memberCount} members
+                        {project.memberCount} {t('projects.members')}
                       </span>
                       {project.typeName && (
                         <Badge variant="outline">{project.typeName}</Badge>
                       )}
                     </div>
                     <div className="mt-3 text-xs text-muted-foreground">
-                      Owner: {project.ownerName}
+                      {t('projects.owner')}: {project.ownerName}
                     </div>
                   </CardContent>
                 </Card>
@@ -159,7 +161,7 @@ export default function ProjectsPage() {
               <Card className="flex h-full min-h-[200px] cursor-pointer items-center justify-center border-dashed transition-colors hover:border-primary hover:bg-accent">
                 <CardContent className="flex flex-col items-center gap-2 py-8">
                   <Plus className="h-8 w-8 text-muted-foreground" />
-                  <span className="text-sm text-muted-foreground">Create New Project</span>
+                  <span className="text-sm text-muted-foreground">{t('projects.createNew')}</span>
                 </CardContent>
               </Card>
             </Link>
@@ -173,10 +175,10 @@ export default function ProjectsPage() {
                 onClick={() => setPage((p) => Math.max(0, p - 1))}
                 disabled={page === 0}
               >
-                Previous
+                {t('pagination.previous')}
               </Button>
               <span className="flex items-center px-4 text-sm text-muted-foreground">
-                Page {page + 1} of {totalPages}
+                {t('pagination.page')} {page + 1} {t('pagination.of')} {totalPages}
               </span>
               <Button
                 variant="outline"
@@ -184,7 +186,7 @@ export default function ProjectsPage() {
                 onClick={() => setPage((p) => Math.min(totalPages - 1, p + 1))}
                 disabled={page >= totalPages - 1}
               >
-                Next
+                {t('pagination.next')}
               </Button>
             </div>
           )}

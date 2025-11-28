@@ -18,10 +18,12 @@ import { taskService } from '@/services/task.service';
 import { TaskListItem } from '@/types/task.types';
 import { Page } from '@/types/project.types';
 import { format, parseISO, isPast, isToday } from 'date-fns';
+import { useLanguage } from '@/contexts/language-context';
 
 type FilterStatus = 'all' | 'todo' | 'in_progress' | 'done' | 'overdue';
 
 export default function TasksPage() {
+  const { t } = useLanguage();
   const [tasks, setTasks] = useState<TaskListItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
@@ -88,7 +90,7 @@ export default function TasksPage() {
       return <span className="text-red-500 flex items-center gap-1"><AlertCircle className="h-3 w-3" />{formatted}</span>;
     }
     if (isToday(date)) {
-      return <span className="text-orange-500">Today</span>;
+      return <span className="text-orange-500">{t('tasks.today')}</span>;
     }
     return <span className="text-muted-foreground">{formatted}</span>;
   };
@@ -105,8 +107,8 @@ export default function TasksPage() {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold">My Tasks</h1>
-          <p className="text-muted-foreground">View and manage all tasks assigned to you</p>
+          <h1 className="text-3xl font-bold">{t('tasks.title')}</h1>
+          <p className="text-muted-foreground">{t('tasks.description')}</p>
         </div>
       </div>
 
@@ -114,7 +116,7 @@ export default function TasksPage() {
         <div className="relative flex-1 max-w-md">
           <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
           <Input
-            placeholder="Search tasks..."
+            placeholder={t('tasks.search')}
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             className="pl-10"
@@ -123,14 +125,14 @@ export default function TasksPage() {
         <Select value={statusFilter} onValueChange={(v) => setStatusFilter(v as FilterStatus)}>
           <SelectTrigger className="w-[180px]">
             <Filter className="h-4 w-4 mr-2" />
-            <SelectValue placeholder="Filter by status" />
+            <SelectValue placeholder={t('tasks.filterByStatus')} />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="all">All Tasks</SelectItem>
-            <SelectItem value="todo">To Do</SelectItem>
-            <SelectItem value="in_progress">In Progress</SelectItem>
-            <SelectItem value="done">Done</SelectItem>
-            <SelectItem value="overdue">Overdue</SelectItem>
+            <SelectItem value="all">{t('tasks.filterAll')}</SelectItem>
+            <SelectItem value="todo">{t('tasks.filterTodo')}</SelectItem>
+            <SelectItem value="in_progress">{t('tasks.filterInProgress')}</SelectItem>
+            <SelectItem value="done">{t('tasks.filterDone')}</SelectItem>
+            <SelectItem value="overdue">{t('tasks.filterOverdue')}</SelectItem>
           </SelectContent>
         </Select>
       </div>
@@ -138,11 +140,11 @@ export default function TasksPage() {
       {filteredTasks.length === 0 ? (
         <div className="flex flex-col items-center justify-center py-16 text-center">
           <CheckCircle2 className="h-16 w-16 text-muted-foreground mb-4" />
-          <h2 className="text-xl font-semibold mb-2">No tasks found</h2>
+          <h2 className="text-xl font-semibold mb-2">{t('tasks.noTasks')}</h2>
           <p className="text-muted-foreground">
             {searchQuery || statusFilter !== 'all'
-              ? 'Try adjusting your filters'
-              : 'Tasks assigned to you will appear here'}
+              ? t('tasks.tryAdjustingFilters')
+              : t('tasks.noTasksDesc')}
           </p>
         </div>
       ) : (
@@ -214,7 +216,7 @@ export default function TasksPage() {
                         </div>
                       )}
                       {task.commentCount > 0 && (
-                        <span className="text-muted-foreground">{task.commentCount} comments</span>
+                        <span className="text-muted-foreground">{task.commentCount} {t('tasks.comments')}</span>
                       )}
                     </div>
                   </Link>
@@ -231,10 +233,10 @@ export default function TasksPage() {
                 onClick={() => setPage((p) => Math.max(0, p - 1))}
                 disabled={page === 0}
               >
-                Previous
+                {t('pagination.previous')}
               </Button>
               <span className="flex items-center px-4 text-sm text-muted-foreground">
-                Page {page + 1} of {totalPages}
+                {t('pagination.page')} {page + 1} {t('pagination.of')} {totalPages}
               </span>
               <Button
                 variant="outline"
@@ -242,7 +244,7 @@ export default function TasksPage() {
                 onClick={() => setPage((p) => Math.min(totalPages - 1, p + 1))}
                 disabled={page >= totalPages - 1}
               >
-                Next
+                {t('pagination.next')}
               </Button>
             </div>
           )}

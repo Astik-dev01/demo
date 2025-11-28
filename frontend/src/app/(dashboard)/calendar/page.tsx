@@ -7,6 +7,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { taskService } from '@/services/task.service';
 import { TaskListItem } from '@/types/task.types';
+import { useLanguage } from '@/contexts/language-context';
 import {
   format,
   startOfMonth,
@@ -22,6 +23,7 @@ import {
 } from 'date-fns';
 
 export default function CalendarPage() {
+  const { t } = useLanguage();
   const [currentDate, setCurrentDate] = useState(new Date());
   const [tasks, setTasks] = useState<TaskListItem[]>([]);
   const [loading, setLoading] = useState(true);
@@ -54,15 +56,15 @@ export default function CalendarPage() {
     return (
       <div className="flex items-center justify-between mb-6">
         <div>
-          <h1 className="text-3xl font-bold">Calendar</h1>
-          <p className="text-muted-foreground">View your tasks and deadlines</p>
+          <h1 className="text-3xl font-bold">{t('calendar.title')}</h1>
+          <p className="text-muted-foreground">{t('calendar.description')}</p>
         </div>
         <div className="flex items-center gap-2">
           <Button variant="outline" size="icon" onClick={() => setCurrentDate(subMonths(currentDate, 1))}>
             <ChevronLeft className="h-4 w-4" />
           </Button>
           <Button variant="outline" onClick={() => setCurrentDate(new Date())}>
-            Today
+            {t('calendar.today')}
           </Button>
           <h2 className="text-xl font-semibold min-w-[200px] text-center">
             {format(currentDate, 'MMMM yyyy')}
@@ -76,11 +78,14 @@ export default function CalendarPage() {
   };
 
   const renderDays = () => {
-    const days = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+    const days = [
+      t('calendar.sun'), t('calendar.mon'), t('calendar.tue'),
+      t('calendar.wed'), t('calendar.thu'), t('calendar.fri'), t('calendar.sat')
+    ];
     return (
       <div className="grid grid-cols-7 mb-2">
-        {days.map((day) => (
-          <div key={day} className="text-center text-sm font-medium text-muted-foreground py-2">
+        {days.map((day, i) => (
+          <div key={i} className="text-center text-sm font-medium text-muted-foreground py-2">
             {day}
           </div>
         ))}
@@ -128,7 +133,7 @@ export default function CalendarPage() {
                 </div>
               ))}
               {dayTasks.length > 3 && (
-                <div className="text-xs text-muted-foreground">+{dayTasks.length - 3} more</div>
+                <div className="text-xs text-muted-foreground">+{dayTasks.length - 3} {t('calendar.more')}</div>
               )}
             </div>
           </div>
@@ -175,7 +180,7 @@ export default function CalendarPage() {
             <CardHeader className="pb-3">
               <CardTitle className="flex items-center gap-2 text-lg">
                 <CalendarIcon className="h-5 w-5" />
-                {selectedDate ? format(selectedDate, 'MMMM d, yyyy') : 'Select a date'}
+                {selectedDate ? format(selectedDate, 'MMMM d, yyyy') : t('calendar.selectDate')}
               </CardTitle>
             </CardHeader>
             <CardContent>
@@ -210,12 +215,12 @@ export default function CalendarPage() {
                   </div>
                 ) : (
                   <p className="text-sm text-muted-foreground text-center py-8">
-                    No tasks due on this date
+                    {t('calendar.noTasks')}
                   </p>
                 )
               ) : (
                 <p className="text-sm text-muted-foreground text-center py-8">
-                  Click on a date to view tasks
+                  {t('calendar.clickToView')}
                 </p>
               )}
             </CardContent>

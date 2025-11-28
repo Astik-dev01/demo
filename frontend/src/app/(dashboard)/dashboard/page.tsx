@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 import { analyticsService } from '@/services/analytics.service';
 import { DashboardOverview, AdminDashboard } from '@/types/analytics.types';
 import { useAuthStore } from '@/stores/auth-store';
+import { useLanguage } from '@/contexts/language-context';
 import {
   StatsCard,
   TasksByStatusChart,
@@ -27,6 +28,7 @@ import {
 } from 'lucide-react';
 
 export default function DashboardPage() {
+  const { t } = useLanguage();
   const { user } = useAuthStore();
   const isAdmin = user?.roles?.includes('ADMIN');
 
@@ -73,7 +75,7 @@ export default function DashboardPage() {
       <div className="flex h-[calc(100vh-200px)] items-center justify-center">
         <div className="text-center">
           <div className="h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent mx-auto" />
-          <p className="mt-4 text-muted-foreground">Loading dashboard...</p>
+          <p className="mt-4 text-muted-foreground">{t('dashboard.loading')}</p>
         </div>
       </div>
     );
@@ -95,57 +97,57 @@ export default function DashboardPage() {
     return (
       <div className="space-y-6">
         <div>
-          <h1 className="text-2xl font-bold">Admin Dashboard</h1>
-          <p className="text-muted-foreground">System-wide overview and statistics</p>
+          <h1 className="text-2xl font-bold">{t('dashboard.admin.title')}</h1>
+          <p className="text-muted-foreground">{t('dashboard.admin.description')}</p>
         </div>
 
         {/* Main Stats */}
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
           <StatsCard
-            title="Total Users"
+            title={t('dashboard.totalUsers')}
             value={adminDashboard.totalUsers}
             icon={Users}
-            description={`${adminDashboard.activeUsers} active, +${adminDashboard.newUsersThisMonth} this month`}
+            description={`${adminDashboard.activeUsers} ${t('dashboard.active')}, +${adminDashboard.newUsersThisMonth} ${t('dashboard.thisMonth')}`}
           />
           <StatsCard
-            title="Projects"
+            title={t('dashboard.projects')}
             value={adminDashboard.totalProjects}
             icon={FolderKanban}
-            description={`${adminDashboard.activeProjects} active, ${adminDashboard.archivedProjects} archived`}
+            description={`${adminDashboard.activeProjects} ${t('dashboard.active')}, ${adminDashboard.archivedProjects} ${t('dashboard.archived')}`}
           />
           <StatsCard
-            title="Tasks"
+            title={t('dashboard.tasks')}
             value={adminDashboard.totalTasks}
             icon={CheckCircle2}
-            description={`${adminDashboard.completedTasks} completed, ${adminDashboard.overdueTasks} overdue`}
+            description={`${adminDashboard.completedTasks} ${t('dashboard.completed')}, ${adminDashboard.overdueTasks} ${t('dashboard.overdue')}`}
           />
           <StatsCard
-            title="Teams"
+            title={t('dashboard.teams')}
             value={adminDashboard.totalTeams}
             icon={Layers}
-            description="Active teams"
+            description={t('dashboard.activeTeams')}
           />
         </div>
 
         {/* Secondary Stats */}
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
           <StatsCard
-            title="Time Tracked (Total)"
+            title={t('dashboard.timeTrackedTotal')}
             value={formatTime(adminDashboard.totalTimeTrackedMinutes)}
             icon={Timer}
-            description="All time"
+            description={t('dashboard.allTime')}
           />
           <StatsCard
-            title="Time This Month"
+            title={t('dashboard.timeThisMonth')}
             value={formatTime(adminDashboard.timeTrackedThisMonthMinutes)}
             icon={Clock}
-            description="Current month"
+            description={t('dashboard.currentMonth')}
           />
           <StatsCard
-            title="Tasks Created"
+            title={t('dashboard.tasksCreated')}
             value={adminDashboard.tasksCreatedThisMonth}
             icon={TrendingUp}
-            description="This month"
+            description={t('dashboard.thisMonth')}
           />
         </div>
 
@@ -156,14 +158,14 @@ export default function DashboardPage() {
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <FolderKanban className="h-5 w-5" />
-                Top Projects
+                {t('dashboard.topProjects')}
               </CardTitle>
             </CardHeader>
             <CardContent>
               <div className="space-y-4">
                 {adminDashboard.topProjects.length === 0 ? (
                   <p className="text-sm text-muted-foreground text-center py-4">
-                    No projects yet
+                    {t('dashboard.noProjects')}
                   </p>
                 ) : (
                   adminDashboard.topProjects.map((project) => {
@@ -176,13 +178,13 @@ export default function DashboardPage() {
                           <div>
                             <p className="font-medium">{project.projectName}</p>
                             <p className="text-sm text-muted-foreground">
-                              {project.projectKey} • {project.memberCount} members
+                              {project.projectKey} • {project.memberCount} {t('dashboard.members')}
                             </p>
                           </div>
                           <div className="text-right">
-                            <p className="font-medium">{project.taskCount} tasks</p>
+                            <p className="font-medium">{project.taskCount} {t('dashboard.tasksLabel')}</p>
                             <p className="text-sm text-muted-foreground">
-                              {project.completedTaskCount} completed
+                              {project.completedTaskCount} {t('dashboard.completed')}
                             </p>
                           </div>
                         </div>
@@ -200,14 +202,14 @@ export default function DashboardPage() {
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <Users className="h-5 w-5" />
-                Top Contributors
+                {t('dashboard.topContributors')}
               </CardTitle>
             </CardHeader>
             <CardContent>
               <div className="space-y-4">
                 {adminDashboard.topUsers.length === 0 ? (
                   <p className="text-sm text-muted-foreground text-center py-4">
-                    No user activity yet
+                    {t('dashboard.noUserActivity')}
                   </p>
                 ) : (
                   adminDashboard.topUsers.map((userStats) => {
@@ -225,7 +227,7 @@ export default function DashboardPage() {
                         <div className="flex-1 min-w-0">
                           <p className="font-medium truncate">{userStats.userName}</p>
                           <p className="text-sm text-muted-foreground">
-                            {userStats.completedTasks}/{userStats.totalTasks} tasks • {formatTime(userStats.timeTrackedMinutes)}
+                            {userStats.completedTasks}/{userStats.totalTasks} {t('dashboard.tasksLabel')} • {formatTime(userStats.timeTrackedMinutes)}
                           </p>
                         </div>
                         <div className="text-right">
@@ -252,7 +254,7 @@ export default function DashboardPage() {
       <div className="flex h-[calc(100vh-200px)] items-center justify-center">
         <div className="text-center">
           <AlertTriangle className="mx-auto h-12 w-12 text-destructive" />
-          <p className="mt-4 text-muted-foreground">Something went wrong</p>
+          <p className="mt-4 text-muted-foreground">{t('dashboard.error')}</p>
         </div>
       </div>
     );
@@ -261,35 +263,35 @@ export default function DashboardPage() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-2xl font-bold">Dashboard</h1>
-        <p className="text-muted-foreground">Overview of your work and progress</p>
+        <h1 className="text-2xl font-bold">{t('dashboard.title')}</h1>
+        <p className="text-muted-foreground">{t('dashboard.description')}</p>
       </div>
 
       {/* Stats Cards */}
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
         <StatsCard
-          title="Projects"
+          title={t('dashboard.projects')}
           value={userDashboard.totalProjects}
           icon={FolderKanban}
-          description={`${userDashboard.activeProjects} active`}
+          description={`${userDashboard.activeProjects} ${t('dashboard.active')}`}
         />
         <StatsCard
-          title="Total Tasks"
+          title={t('dashboard.totalTasks')}
           value={userDashboard.totalTasks}
           icon={CheckCircle2}
-          description={`${userDashboard.completedTasks} completed`}
+          description={`${userDashboard.completedTasks} ${t('dashboard.completed')}`}
         />
         <StatsCard
-          title="Overdue"
+          title={t('dashboard.overdue')}
           value={userDashboard.overdueTasks}
           icon={AlertTriangle}
-          description="Tasks past due date"
+          description={t('dashboard.tasksPastDue')}
         />
         <StatsCard
-          title="Time This Month"
+          title={t('dashboard.timeThisMonth')}
           value={formatTime(userDashboard.totalTimeSpentMinutes)}
           icon={Timer}
-          description={`${userDashboard.completionRate}% completion rate`}
+          description={`${userDashboard.completionRate}% ${t('dashboard.completionRate')}`}
         />
       </div>
 
