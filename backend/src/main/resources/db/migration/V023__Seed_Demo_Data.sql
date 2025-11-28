@@ -634,70 +634,70 @@ ON CONFLICT DO NOTHING;
 -- =====================================================
 INSERT INTO project_members (id, project_id, user_id, role_id, joined_at)
 SELECT gen_random_uuid(), 'c1000000-0000-0000-0000-000000000001', 'a1000000-0000-0000-0000-000000000001',
-       (SELECT id FROM hb_role_in_project WHERE alias = 'owner' LIMIT 1), NOW() - INTERVAL '60 days'
+       (SELECT id FROM hb_role_in_project WHERE alias = 'OWNER' LIMIT 1), NOW() - INTERVAL '60 days'
 WHERE NOT EXISTS (SELECT 1 FROM project_members WHERE project_id = 'c1000000-0000-0000-0000-000000000001' AND user_id = 'a1000000-0000-0000-0000-000000000001');
 
 INSERT INTO project_members (id, project_id, user_id, role_id, joined_at)
 SELECT gen_random_uuid(), 'c1000000-0000-0000-0000-000000000001', 'a1000000-0000-0000-0000-000000000003',
-       (SELECT id FROM hb_role_in_project WHERE alias = 'admin' LIMIT 1), NOW() - INTERVAL '58 days'
+       (SELECT id FROM hb_role_in_project WHERE alias = 'ADMIN' LIMIT 1), NOW() - INTERVAL '58 days'
 WHERE NOT EXISTS (SELECT 1 FROM project_members WHERE project_id = 'c1000000-0000-0000-0000-000000000001' AND user_id = 'a1000000-0000-0000-0000-000000000003');
 
 INSERT INTO project_members (id, project_id, user_id, role_id, joined_at)
 SELECT gen_random_uuid(), 'c1000000-0000-0000-0000-000000000001', 'a1000000-0000-0000-0000-000000000006',
-       (SELECT id FROM hb_role_in_project WHERE alias = 'member' LIMIT 1), NOW() - INTERVAL '55 days'
+       (SELECT id FROM hb_role_in_project WHERE alias = 'MEMBER' LIMIT 1), NOW() - INTERVAL '55 days'
 WHERE NOT EXISTS (SELECT 1 FROM project_members WHERE project_id = 'c1000000-0000-0000-0000-000000000001' AND user_id = 'a1000000-0000-0000-0000-000000000006');
 
 INSERT INTO project_members (id, project_id, user_id, role_id, joined_at)
 SELECT gen_random_uuid(), 'c1000000-0000-0000-0000-000000000001', 'a1000000-0000-0000-0000-000000000007',
-       (SELECT id FROM hb_role_in_project WHERE alias = 'member' LIMIT 1), NOW() - INTERVAL '52 days'
+       (SELECT id FROM hb_role_in_project WHERE alias = 'MEMBER' LIMIT 1), NOW() - INTERVAL '52 days'
 WHERE NOT EXISTS (SELECT 1 FROM project_members WHERE project_id = 'c1000000-0000-0000-0000-000000000001' AND user_id = 'a1000000-0000-0000-0000-000000000007');
 
 INSERT INTO project_members (id, project_id, user_id, role_id, joined_at)
 SELECT gen_random_uuid(), 'c1000000-0000-0000-0000-000000000001', 'a1000000-0000-0000-0000-000000000004',
-       (SELECT id FROM hb_role_in_project WHERE alias = 'member' LIMIT 1), NOW() - INTERVAL '50 days'
+       (SELECT id FROM hb_role_in_project WHERE alias = 'MEMBER' LIMIT 1), NOW() - INTERVAL '50 days'
 WHERE NOT EXISTS (SELECT 1 FROM project_members WHERE project_id = 'c1000000-0000-0000-0000-000000000001' AND user_id = 'a1000000-0000-0000-0000-000000000004');
 
 INSERT INTO project_members (id, project_id, user_id, role_id, joined_at)
 SELECT gen_random_uuid(), 'c1000000-0000-0000-0000-000000000002', 'a1000000-0000-0000-0000-000000000002',
-       (SELECT id FROM hb_role_in_project WHERE alias = 'owner' LIMIT 1), NOW() - INTERVAL '55 days'
+       (SELECT id FROM hb_role_in_project WHERE alias = 'OWNER' LIMIT 1), NOW() - INTERVAL '55 days'
 WHERE NOT EXISTS (SELECT 1 FROM project_members WHERE project_id = 'c1000000-0000-0000-0000-000000000002' AND user_id = 'a1000000-0000-0000-0000-000000000002');
 
 INSERT INTO project_members (id, project_id, user_id, role_id, joined_at)
 SELECT gen_random_uuid(), 'c1000000-0000-0000-0000-000000000002', 'a1000000-0000-0000-0000-000000000003',
-       (SELECT id FROM hb_role_in_project WHERE alias = 'admin' LIMIT 1), NOW() - INTERVAL '52 days'
+       (SELECT id FROM hb_role_in_project WHERE alias = 'ADMIN' LIMIT 1), NOW() - INTERVAL '52 days'
 WHERE NOT EXISTS (SELECT 1 FROM project_members WHERE project_id = 'c1000000-0000-0000-0000-000000000002' AND user_id = 'a1000000-0000-0000-0000-000000000003');
 
 INSERT INTO project_members (id, project_id, user_id, role_id, joined_at)
 SELECT gen_random_uuid(), 'c1000000-0000-0000-0000-000000000002', 'a1000000-0000-0000-0000-000000000006',
-       (SELECT id FROM hb_role_in_project WHERE alias = 'member' LIMIT 1), NOW() - INTERVAL '50 days'
+       (SELECT id FROM hb_role_in_project WHERE alias = 'MEMBER' LIMIT 1), NOW() - INTERVAL '50 days'
 WHERE NOT EXISTS (SELECT 1 FROM project_members WHERE project_id = 'c1000000-0000-0000-0000-000000000002' AND user_id = 'a1000000-0000-0000-0000-000000000006');
 
 INSERT INTO project_members (id, project_id, user_id, role_id, joined_at)
 SELECT gen_random_uuid(), 'c1000000-0000-0000-0000-000000000002', 'a1000000-0000-0000-0000-000000000007',
-       (SELECT id FROM hb_role_in_project WHERE alias = 'member' LIMIT 1), NOW() - INTERVAL '48 days'
+       (SELECT id FROM hb_role_in_project WHERE alias = 'MEMBER' LIMIT 1), NOW() - INTERVAL '48 days'
 WHERE NOT EXISTS (SELECT 1 FROM project_members WHERE project_id = 'c1000000-0000-0000-0000-000000000002' AND user_id = 'a1000000-0000-0000-0000-000000000007');
 
 INSERT INTO project_members (id, project_id, user_id, role_id, joined_at)
 SELECT gen_random_uuid(), 'c1000000-0000-0000-0000-000000000003', 'a1000000-0000-0000-0000-000000000001',
-       (SELECT id FROM hb_role_in_project WHERE alias = 'owner' LIMIT 1), NOW() - INTERVAL '45 days'
+       (SELECT id FROM hb_role_in_project WHERE alias = 'OWNER' LIMIT 1), NOW() - INTERVAL '45 days'
 WHERE NOT EXISTS (SELECT 1 FROM project_members WHERE project_id = 'c1000000-0000-0000-0000-000000000003' AND user_id = 'a1000000-0000-0000-0000-000000000001');
 
 INSERT INTO project_members (id, project_id, user_id, role_id, joined_at)
 SELECT gen_random_uuid(), 'c1000000-0000-0000-0000-000000000003', 'a1000000-0000-0000-0000-000000000003',
-       (SELECT id FROM hb_role_in_project WHERE alias = 'member' LIMIT 1), NOW() - INTERVAL '42 days'
+       (SELECT id FROM hb_role_in_project WHERE alias = 'MEMBER' LIMIT 1), NOW() - INTERVAL '42 days'
 WHERE NOT EXISTS (SELECT 1 FROM project_members WHERE project_id = 'c1000000-0000-0000-0000-000000000003' AND user_id = 'a1000000-0000-0000-0000-000000000003');
 
 INSERT INTO project_members (id, project_id, user_id, role_id, joined_at)
 SELECT gen_random_uuid(), 'c1000000-0000-0000-0000-000000000004', 'a1000000-0000-0000-0000-000000000003',
-       (SELECT id FROM hb_role_in_project WHERE alias = 'owner' LIMIT 1), NOW() - INTERVAL '40 days'
+       (SELECT id FROM hb_role_in_project WHERE alias = 'OWNER' LIMIT 1), NOW() - INTERVAL '40 days'
 WHERE NOT EXISTS (SELECT 1 FROM project_members WHERE project_id = 'c1000000-0000-0000-0000-000000000004' AND user_id = 'a1000000-0000-0000-0000-000000000003');
 
 INSERT INTO project_members (id, project_id, user_id, role_id, joined_at)
 SELECT gen_random_uuid(), 'c1000000-0000-0000-0000-000000000004', 'a1000000-0000-0000-0000-000000000006',
-       (SELECT id FROM hb_role_in_project WHERE alias = 'member' LIMIT 1), NOW() - INTERVAL '38 days'
+       (SELECT id FROM hb_role_in_project WHERE alias = 'MEMBER' LIMIT 1), NOW() - INTERVAL '38 days'
 WHERE NOT EXISTS (SELECT 1 FROM project_members WHERE project_id = 'c1000000-0000-0000-0000-000000000004' AND user_id = 'a1000000-0000-0000-0000-000000000006');
 
 INSERT INTO project_members (id, project_id, user_id, role_id, joined_at)
 SELECT gen_random_uuid(), 'c1000000-0000-0000-0000-000000000005', 'a1000000-0000-0000-0000-000000000005',
-       (SELECT id FROM hb_role_in_project WHERE alias = 'owner' LIMIT 1), NOW() - INTERVAL '35 days'
+       (SELECT id FROM hb_role_in_project WHERE alias = 'OWNER' LIMIT 1), NOW() - INTERVAL '35 days'
 WHERE NOT EXISTS (SELECT 1 FROM project_members WHERE project_id = 'c1000000-0000-0000-0000-000000000005' AND user_id = 'a1000000-0000-0000-0000-000000000005');
