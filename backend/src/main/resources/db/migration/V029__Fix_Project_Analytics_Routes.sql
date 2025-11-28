@@ -1,22 +1,30 @@
--- Add project analytics routes
--- Note: Routes are normalized by removing UUIDs, so /analytics/projects/{uuid}/burndown becomes /analytics/projects/burndown
+-- Fix project analytics routes
+-- Routes are normalized by removing UUIDs, so /analytics/projects/{uuid}/burndown becomes /analytics/projects/burndown
 
--- Project analytics overview route (normalized from /analytics/projects/{uuid})
+-- Remove old routes with {id} placeholder
+DELETE FROM taskflow.sys_role_linked_available_routes
+WHERE available_route_id IN (
+    SELECT id FROM taskflow.sys_available_routes
+    WHERE code IN ('/analytics/projects/{id}', '/analytics/projects/{id}/burndown', '/analytics/projects/{id}/velocity')
+);
+
+DELETE FROM taskflow.sys_available_routes
+WHERE code IN ('/analytics/projects/{id}', '/analytics/projects/{id}/burndown', '/analytics/projects/{id}/velocity');
+
+-- Add correct routes (normalized)
 INSERT INTO taskflow.sys_available_routes (id, code, description_en, description_ru, created_at, updated_at)
 VALUES (gen_random_uuid(), '/analytics/projects', 'Get project analytics', 'Аналитика проекта', NOW(), NOW())
 ON CONFLICT (code) DO NOTHING;
 
--- Project burndown chart route (normalized from /analytics/projects/{uuid}/burndown)
 INSERT INTO taskflow.sys_available_routes (id, code, description_en, description_ru, created_at, updated_at)
 VALUES (gen_random_uuid(), '/analytics/projects/burndown', 'Get project burndown chart', 'Burndown диаграмма проекта', NOW(), NOW())
 ON CONFLICT (code) DO NOTHING;
 
--- Project velocity chart route (normalized from /analytics/projects/{uuid}/velocity)
 INSERT INTO taskflow.sys_available_routes (id, code, description_en, description_ru, created_at, updated_at)
 VALUES (gen_random_uuid(), '/analytics/projects/velocity', 'Get project velocity chart', 'Velocity диаграмма проекта', NOW(), NOW())
 ON CONFLICT (code) DO NOTHING;
 
--- Grant all project analytics routes to USER, MODERATOR, ADMIN
+-- Grant access to USER, MODERATOR, ADMIN
 INSERT INTO taskflow.sys_role_linked_available_routes (id, role_id, available_route_id, method_get)
 SELECT gen_random_uuid(), r.id, ar.id, true
 FROM taskflow.sys_roles r, taskflow.sys_available_routes ar
