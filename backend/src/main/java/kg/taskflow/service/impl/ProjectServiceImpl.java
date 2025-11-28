@@ -122,8 +122,15 @@ public class ProjectServiceImpl implements ProjectService {
 
     @Override
     public Page<ProjectListDto> getMyProjects(Pageable pageable) {
-        User currentUser = getCurrentUser();
-        Page<Project> projects = projectRepository.findUserProjects(currentUser.getId(), pageable);
+        Page<Project> projects;
+
+        // System admin sees all projects
+        if (isSystemAdmin()) {
+            projects = projectRepository.findAllActive(pageable);
+        } else {
+            User currentUser = getCurrentUser();
+            projects = projectRepository.findUserProjects(currentUser.getId(), pageable);
+        }
 
         return projects.map(project -> {
             ProjectListDto dto = projectMapper.toListDto(project);
@@ -147,12 +154,18 @@ public class ProjectServiceImpl implements ProjectService {
 
     @Override
     public BasePageResponse<ProjectListDto> filterMyProjects(ProjectFilter filter) {
-        User currentUser = getCurrentUser();
-
         // Create pageable with proper conversion (1-based to 0-based)
         Pageable pageable = createPageable(filter);
 
-        Page<Project> projects = projectRepository.findUserProjects(currentUser.getId(), pageable);
+        Page<Project> projects;
+
+        // System admin sees all projects
+        if (isSystemAdmin()) {
+            projects = projectRepository.findAllActive(pageable);
+        } else {
+            User currentUser = getCurrentUser();
+            projects = projectRepository.findUserProjects(currentUser.getId(), pageable);
+        }
 
         List<ProjectListDto> content = projects.getContent().stream()
                 .map(project -> {
@@ -396,7 +409,17 @@ public class ProjectServiceImpl implements ProjectService {
         return (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
     }
 
+    private boolean isSystemAdmin() {
+        User currentUser = getCurrentUser();
+        return currentUser.getRoles().stream()
+                .anyMatch(role -> "ADMIN".equals(role.getCode()) || "ADMIN".equals(role.getName()));
+    }
+
     private void checkViewAccess(Project project) {
+        // System admin can view any project
+        if (isSystemAdmin()) {
+            return;
+        }
         if (Boolean.TRUE.equals(project.getIsPublic())) {
             return;
         }
@@ -414,6 +437,11 @@ public class ProjectServiceImpl implements ProjectService {
     }
 
     private void checkManageAccess(Project project) {
+        // System admin can manage any project
+        if (isSystemAdmin()) {
+            return;
+        }
+
         User currentUser = getCurrentUser();
         UUID userId = currentUser.getId();
 

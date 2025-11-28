@@ -63,8 +63,16 @@ public class TeamServiceImpl implements TeamService {
 
     @Override
     public Page<TeamDto> getMyTeams(Pageable pageable) {
-        User currentUser = getCurrentUser();
-        Page<Team> teams = teamRepository.findUserTeams(currentUser.getId(), pageable);
+        Page<Team> teams;
+
+        // System admin sees all teams
+        if (isSystemAdmin()) {
+            teams = teamRepository.findAllActive(pageable);
+        } else {
+            User currentUser = getCurrentUser();
+            teams = teamRepository.findUserTeams(currentUser.getId(), pageable);
+        }
+
         return teams.map(this::getTeamDto);
     }
 
@@ -210,7 +218,17 @@ public class TeamServiceImpl implements TeamService {
         return (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
     }
 
+    private boolean isSystemAdmin() {
+        User currentUser = getCurrentUser();
+        return currentUser.getRoles().stream()
+                .anyMatch(role -> "ADMIN".equals(role.getCode()) || "ADMIN".equals(role.getName()));
+    }
+
     private void checkViewAccess(Team team) {
+        // System admin can view any team
+        if (isSystemAdmin()) {
+            return;
+        }
         if (Boolean.TRUE.equals(team.getIsPublic())) {
             return;
         }
@@ -228,6 +246,11 @@ public class TeamServiceImpl implements TeamService {
     }
 
     private void checkManageAccess(Team team) {
+        // System admin can manage any team
+        if (isSystemAdmin()) {
+            return;
+        }
+
         User currentUser = getCurrentUser();
         UUID userId = currentUser.getId();
 
