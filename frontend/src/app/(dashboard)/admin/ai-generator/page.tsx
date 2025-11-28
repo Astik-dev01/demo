@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { Sparkles, FormInput, Table2, Loader2, Copy, Check, Download } from 'lucide-react';
+import { Sparkles, FormInput, Table2, Loader2, Copy, Check, Download, Pencil, Trash2, Plus } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -9,6 +9,24 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
 import { DynamicForm } from '@/components/ai/DynamicForm';
 import { DynamicTable } from '@/components/ai/DynamicTable';
 import { aiService } from '@/services/ai.service';
@@ -39,6 +57,13 @@ export default function AiGeneratorPage() {
   const [tableLoading, setTableLoading] = useState(false);
   const [generatedTable, setGeneratedTable] = useState<GeneratedTableSchema | null>(null);
   const [tableCopied, setTableCopied] = useState(false);
+  const [tableData, setTableData] = useState(sampleTableData);
+
+  // Action dialog state
+  const [editDialogOpen, setEditDialogOpen] = useState(false);
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [createDialogOpen, setCreateDialogOpen] = useState(false);
+  const [selectedRow, setSelectedRow] = useState<Record<string, unknown> | null>(null);
 
   const handleGenerateForm = async () => {
     if (!formPrompt.trim()) {
@@ -113,7 +138,50 @@ export default function AiGeneratorPage() {
 
   const handleTableAction = (action: string, row?: Record<string, unknown>) => {
     console.log('Table action:', action, row);
-    toast.success(`Action: ${action}${row ? ` on ${JSON.stringify(row)}` : ''}`);
+
+    switch (action) {
+      case 'create':
+        setSelectedRow(null);
+        setCreateDialogOpen(true);
+        break;
+      case 'edit':
+        setSelectedRow(row || null);
+        setEditDialogOpen(true);
+        break;
+      case 'delete':
+        setSelectedRow(row || null);
+        setDeleteDialogOpen(true);
+        break;
+      default:
+        toast.success(`Action: ${action}`);
+    }
+  };
+
+  const handleDelete = () => {
+    if (selectedRow) {
+      setTableData(prev => prev.filter(item => item.id !== selectedRow.id));
+      toast.success('Item deleted successfully!');
+    }
+    setDeleteDialogOpen(false);
+    setSelectedRow(null);
+  };
+
+  const handleEditSave = () => {
+    toast.success('Changes saved successfully!');
+    setEditDialogOpen(false);
+    setSelectedRow(null);
+  };
+
+  const handleCreate = () => {
+    const newItem = {
+      id: Math.max(...tableData.map(d => d.id as number)) + 1,
+      name: `Item ${tableData.length + 1}`,
+      status: 'Active',
+      createdAt: new Date().toISOString().split('T')[0],
+    };
+    setTableData(prev => [...prev, newItem]);
+    toast.success('Item created successfully!');
+    setCreateDialogOpen(false);
   };
 
   return (
@@ -306,7 +374,7 @@ export default function AiGeneratorPage() {
                   </div>
                   <DynamicTable
                     schema={generatedTable}
-                    data={sampleTableData}
+                    data={tableData}
                     onAction={handleTableAction}
                   />
                 </>
@@ -322,6 +390,102 @@ export default function AiGeneratorPage() {
           </div>
         </TabsContent>
       </Tabs>
+
+      {/* Edit Dialog */}
+      <Dialog open={editDialogOpen} onOpenChange={setEditDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Pencil className="h-5 w-5" />
+              Edit Item
+            </DialogTitle>
+            <DialogDescription>
+              Make changes to the selected item. This is a demo of the edit action.
+            </DialogDescription>
+          </DialogHeader>
+          {selectedRow && (
+            <div className="space-y-4 py-4">
+              {Object.entries(selectedRow).map(([key, value]) => (
+                <div key={key} className="space-y-2">
+                  <Label htmlFor={key}>{key}</Label>
+                  <Input
+                    id={key}
+                    defaultValue={String(value)}
+                    disabled={key === 'id'}
+                  />
+                </div>
+              ))}
+            </div>
+          )}
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setEditDialogOpen(false)}>
+              Cancel
+            </Button>
+            <Button onClick={handleEditSave}>
+              Save Changes
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Delete Confirmation Dialog */}
+      <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle className="flex items-center gap-2">
+              <Trash2 className="h-5 w-5 text-destructive" />
+              Delete Item
+            </AlertDialogTitle>
+            <AlertDialogDescription>
+              Are you sure you want to delete this item? This action cannot be undone.
+              {selectedRow && (
+                <div className="mt-4 p-3 bg-muted rounded-md">
+                  <pre className="text-sm">{JSON.stringify(selectedRow, null, 2)}</pre>
+                </div>
+              )}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction onClick={handleDelete} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
+              Delete
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      {/* Create Dialog */}
+      <Dialog open={createDialogOpen} onOpenChange={setCreateDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Plus className="h-5 w-5" />
+              Create New Item
+            </DialogTitle>
+            <DialogDescription>
+              Add a new item to the table. This is a demo of the create action.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4 py-4">
+            <div className="space-y-2">
+              <Label htmlFor="new-name">Name</Label>
+              <Input id="new-name" placeholder="Enter name..." />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="new-status">Status</Label>
+              <Input id="new-status" placeholder="Enter status..." defaultValue="Active" />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setCreateDialogOpen(false)}>
+              Cancel
+            </Button>
+            <Button onClick={handleCreate}>
+              Create
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
