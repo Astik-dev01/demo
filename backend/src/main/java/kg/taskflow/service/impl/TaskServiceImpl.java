@@ -255,7 +255,8 @@ public class TaskServiceImpl implements TaskService {
     @Override
     @Transactional
     public void move(UUID id, MoveTaskRequest request) {
-        Task task = findTaskById(id);
+        // Use pessimistic lock to prevent race conditions when moving tasks
+        Task task = findTaskByIdWithLock(id);
         checkProjectAccess(task.getProject().getId());
 
         User currentUser = getCurrentUser();
@@ -551,6 +552,11 @@ public class TaskServiceImpl implements TaskService {
 
     private Task findTaskById(UUID id) {
         return taskRepository.findByIdAndIsDeletedFalse(id)
+                .orElseThrow(() -> new NotFoundException("Task", id));
+    }
+
+    private Task findTaskByIdWithLock(UUID id) {
+        return taskRepository.findByIdWithLock(id)
                 .orElseThrow(() -> new NotFoundException("Task", id));
     }
 

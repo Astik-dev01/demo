@@ -258,7 +258,7 @@ public class AnalyticsServiceImpl implements AnalyticsService {
     }
 
     private List<TasksByStatusDto> getTasksByStatusForUser(UUID userId) {
-        List<Task> tasks = taskRepository.findByAssignee(userId);
+        List<Task> tasks = taskRepository.findByAssigneeWithDetails(userId);
         return tasks.stream()
                 .filter(t -> t.getStatus() != null)
                 .collect(Collectors.groupingBy(t -> t.getStatus().getNameRu(), Collectors.counting()))
@@ -279,7 +279,7 @@ public class AnalyticsServiceImpl implements AnalyticsService {
     }
 
     private List<TasksByStatusDto> getTasksByStatusForProject(UUID projectId) {
-        List<Task> tasks = taskRepository.findByProject(projectId);
+        List<Task> tasks = taskRepository.findByProjectWithDetails(projectId);
         return tasks.stream()
                 .filter(t -> t.getStatus() != null)
                 .collect(Collectors.groupingBy(t -> t.getStatus().getNameRu(), Collectors.counting()))
@@ -300,7 +300,7 @@ public class AnalyticsServiceImpl implements AnalyticsService {
     }
 
     private List<TasksByPriorityDto> getTasksByPriorityForUser(UUID userId) {
-        List<Task> tasks = taskRepository.findByAssignee(userId);
+        List<Task> tasks = taskRepository.findByAssigneeWithDetails(userId);
         return tasks.stream()
                 .filter(t -> t.getPriority() != null)
                 .collect(Collectors.groupingBy(t -> t.getPriority().getNameRu(), Collectors.counting()))
@@ -321,7 +321,7 @@ public class AnalyticsServiceImpl implements AnalyticsService {
     }
 
     private List<TasksByPriorityDto> getTasksByPriorityForProject(UUID projectId) {
-        List<Task> tasks = taskRepository.findByProject(projectId);
+        List<Task> tasks = taskRepository.findByProjectWithDetails(projectId);
         return tasks.stream()
                 .filter(t -> t.getPriority() != null)
                 .collect(Collectors.groupingBy(t -> t.getPriority().getNameRu(), Collectors.counting()))
@@ -342,7 +342,7 @@ public class AnalyticsServiceImpl implements AnalyticsService {
     }
 
     private List<TasksByAssigneeDto> getTasksByAssignee(UUID projectId) {
-        List<Task> tasks = taskRepository.findByProject(projectId);
+        List<Task> tasks = taskRepository.findByProjectWithDetails(projectId);
         return tasks.stream()
                 .filter(t -> t.getAssignee() != null)
                 .collect(Collectors.groupingBy(t -> t.getAssignee().getId()))
@@ -369,7 +369,7 @@ public class AnalyticsServiceImpl implements AnalyticsService {
     }
 
     private List<RecentActivityDto> getRecentActivity(UUID userId) {
-        List<Task> recentTasks = taskRepository.findRecentTasks(userId, PageRequest.of(0, 10));
+        List<Task> recentTasks = taskRepository.findRecentTasksWithDetails(userId, PageRequest.of(0, 10));
         return recentTasks.stream()
                 .map(t -> RecentActivityDto.builder()
                         .taskId(t.getId())
@@ -384,7 +384,7 @@ public class AnalyticsServiceImpl implements AnalyticsService {
     }
 
     private List<UpcomingDeadlineDto> getUpcomingDeadlines(UUID userId) {
-        List<Task> tasks = taskRepository.findUpcomingDeadlines(userId, PageRequest.of(0, 10));
+        List<Task> tasks = taskRepository.findUpcomingDeadlinesWithDetails(userId, PageRequest.of(0, 10));
         LocalDate today = LocalDate.now();
 
         return tasks.stream()

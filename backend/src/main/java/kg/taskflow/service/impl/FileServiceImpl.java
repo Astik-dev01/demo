@@ -138,15 +138,13 @@ public class FileServiceImpl implements FileService {
 
     @Override
     public byte[] downloadFile(String filePath) {
-        try {
-            InputStream stream = minioClient.getObject(
-                    GetObjectArgs.builder()
-                            .bucket(minioConfig.getBucket())
-                            .object(filePath)
-                            .build()
-            );
+        try (InputStream stream = minioClient.getObject(
+                GetObjectArgs.builder()
+                        .bucket(minioConfig.getBucket())
+                        .object(filePath)
+                        .build()
+        )) {
             return stream.readAllBytes();
-
         } catch (Exception e) {
             log.error("Error downloading file: {}", e.getMessage(), e);
             throw new BadRequestException("File not found: " + filePath);

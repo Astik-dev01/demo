@@ -1,10 +1,12 @@
 package kg.taskflow.db.repository;
 
+import jakarta.persistence.LockModeType;
 import kg.taskflow.db.entity.Task;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
+import org.springframework.data.jpa.repository.Lock;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
 
@@ -41,6 +43,10 @@ public interface TaskRepository extends JpaRepository<Task, UUID>, JpaSpecificat
     Optional<Task> findByKey(String projectKey, Integer number);
 
     Optional<Task> findByIdAndIsDeletedFalse(UUID id);
+
+    @Lock(LockModeType.PESSIMISTIC_WRITE)
+    @Query("SELECT t FROM Task t WHERE t.id = :id AND t.isDeleted = false")
+    Optional<Task> findByIdWithLock(UUID id);
 
     @Query("SELECT COALESCE(MAX(t.number), 0) + 1 FROM Task t WHERE t.project.id = :projectId")
     Integer getNextNumber(UUID projectId);
@@ -157,4 +163,43 @@ public interface TaskRepository extends JpaRepository<Task, UUID>, JpaSpecificat
         AND t.isDeleted = false
     """)
     List<Task> findTasksDueBetween(LocalDate startDate, LocalDate endDate);
+
+    // Optimized queries with fetch joins for analytics (avoiding N+1)
+    @Query("""
+        SELECT DISTINCT t FROM Task t
+        LEFT JOIN FETCH t.status
+        LEFT JOIN FETCH t.priority
+        WHERE t.assignee.id = :userId AND t.isDeleted = false
+        ORDER BY t.dueDate NULLS LAST
+    """)
+    List<Task> findByAssigneeWithDetails(UUID userId);
+
+    @Query("""
+        SELECT DISTINCT t FROM Task t
+        LEFT JOIN FETCH t.status
+        LEFT JOIN FETCH t.priority
+        LEFT JOIN FETCH t.assignee
+        WHERE t.project.id = :projectId AND t.isDeleted = false
+        ORDER BY t.createdAt DESC
+    """)
+    List<Task> findByProjectWithDetails(UUID projectId);
+
+    @Query("""
+        SELECT DISTINCT t FROM Task t
+        LEFT JOIN FETCH t.project
+        LEFT JOIN FETCH t.priority
+        WHERE t.assignee.id = :userId AND t.dueDate IS NOT NULL
+        AND t.dueDate >= CURRENT_DATE AND t.completedAt IS NULL
+        AND t.isDeleted = false
+        ORDER BY t.dueDate ASC
+    """)
+    List<Task> findUpcomingDeadlinesWithDetails(UUID userId, Pageable pageable);
+
+    @Query("""
+        SELECT DISTINCT t FROM Task t
+        LEFT JOIN FETCH t.reporter
+        WHERE t.assignee.id = :userId AND t.isDeleted = false
+        ORDER BY t.updatedAt DESC
+    """)
+    List<Task> findRecentTasksWithDetails(UUID userId, Pageable pageable);
 }

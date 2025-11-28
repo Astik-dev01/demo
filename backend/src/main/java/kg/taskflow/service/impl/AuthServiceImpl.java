@@ -153,7 +153,6 @@ public class AuthServiceImpl implements AuthService {
 
         // TODO: Send email with reset link
         log.info("Password reset token generated for user: {}", email);
-        log.debug("Reset token: {}", token); // Remove in production
     }
 
     @Override
