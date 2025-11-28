@@ -150,7 +150,7 @@ export default function TagsPage() {
       {/* Dynamic Table */}
       <DynamicTable
         schema={tagTableSchema}
-        data={tags}
+        data={tags as unknown as Record<string, unknown>[]}
         onAction={handleTableAction}
       />
 
