@@ -1,7 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import { Users, FolderKanban, ListTodo, BookOpen, Shield, Key } from 'lucide-react';
+import { Users, FolderKanban, ListTodo, BookOpen, Shield, Key, Sparkles } from 'lucide-react';
 import { Card, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { useLanguage } from '@/contexts/language-context';
 
@@ -47,6 +47,13 @@ const adminSections = [
     icon: Key,
     titleKey: 'nav.admin.permissions',
     descKey: 'admin.permissions.desc',
+  },
+  {
+    key: 'ai-generator',
+    href: '/admin/ai-generator',
+    icon: Sparkles,
+    titleKey: 'nav.admin.aiGenerator',
+    descKey: 'admin.aiGenerator.desc',
   },
 ];
 
