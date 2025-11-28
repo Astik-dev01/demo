@@ -28,6 +28,12 @@ const handbooks = [
     href: '/admin/handbooks/tag-categories',
     icon: '🏷️',
   },
+  {
+    title: 'Tags (AI Demo)',
+    description: 'Example page using AI-generated forms and tables',
+    href: '/admin/handbooks/tags',
+    icon: '✨',
+  },
 ];
 
 export default function HandbooksPage() {
